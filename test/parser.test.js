@@ -92,3 +92,51 @@ const s = P.parseText(sk); show(s); console.log(s.map(r=>r.category), r.map(x=>x
 assert.equal(s.length, 2); assert.equal(s[1].servings, 6);
 console.log(P.formatIngredient(s[0].groups[0].items[1], 2), P.formatIngredient(s[0].groups[0].items[0], 0.5));
 console.log('SK OK');
+// A single cake with a frosting section after the steps stays ONE recipe
+const cake = `Carrot Cake
+Serves 12
+2 cups flour
+2 cups sugar
+4 eggs
+3 cups grated carrots
+Mix the dry ingredients, beat in the eggs and fold in the carrots.
+Bake at 350°F for 40 minutes and let cool.
+Frosting
+8 oz cream cheese
+1/2 cup butter
+3 cups powdered sugar
+Beat everything until fluffy and spread over the cooled cake.`;
+const c = P.parseText(cake); console.log(c.length, c[0].groups.map(g => g.name + ':' + g.items.length), c[0].steps.length, c[0].category);
+assert.equal(c.length, 1); assert.equal(c[0].groups.length, 2); assert.equal(c[0].steps.length, 3);
+// Slovak cookbook, ALL CAPS titles, no headers on some
+const skBook = `MAMINE RECEPTY
+
+BRAVČOVÝ GULÁŠ
+Porcie: 4
+50 dkg bravčového pliecka
+2 cibule
+1 PL mletej papriky
+2 strúčiky cesnaku
+soľ podľa chuti
+Cibuľu nakrájame nadrobno a opražíme na oleji dozlatista.
+Pridáme mäso, papriku a podlejeme vodou. Dusíme do mäkka asi hodinu.
+
+PALACINKY
+Suroviny:
+25 dkg hladkej múky
+5 dl mlieka
+2 vajcia
+štipka soli
+Postup:
+Všetko vymiešame na hladké cesto a necháme odpočívať 10 minút.
+Na rozpálenej panvici pečieme tenké palacinky.
+
+KAPUSTNICA
+1 kg kyslej kapusty
+30 dkg údenej klobásy
+10 dkg sušených húb
+Kapustu zalejeme vodou a varíme s klobásou a hubami asi hodinu.
+Na konci dochutíme soľou a smotanou.`;
+const sb = P.parseText(skBook); console.log(sb.map(r => [r.title, r.category, r.groups[0].items.length, r.steps.length]));
+assert.equal(sb.length, 3);
+console.log('SPLIT OK');

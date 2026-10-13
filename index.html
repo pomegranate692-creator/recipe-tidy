@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Recipe Tidy</title>
-  <meta name="description" content="Drop in messy recipe files (PDF, Word, text, photos, saved web pages) and get clean, scalable, printable recipe cards.">
+  <meta name="description" content="Take a photo of any recipe and get a clean, easy to read recipe card. Keeps all your recipes in one place.">
   <link rel="icon" type="image/png" href="icons/favicon-64.png">
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -15,121 +15,29 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
   <header class="topbar">
-    <button class="icon-btn only-mobile" id="menuBtn" aria-label="Open library">☰</button>
-    <div class="brand"><img class="logo" src="icons/icon-192.png" alt=""> Recipe Tidy</div>
-    <div class="top-actions">
-      <button class="btn ghost" id="settingsBtn" title="Settings">⚙ Settings</button>
-    </div>
+    <button class="back" id="backBtn" hidden><span aria-hidden="true">‹</span> <span id="backLabel">My recipes</span></button>
+    <a class="brand" href="#" id="brand"><img class="logo" src="icons/icon-192.png" alt=""> My Recipes</a>
+    <button class="settings-btn" id="settingsBtn"><span aria-hidden="true">⚙️</span> Settings</button>
   </header>
 
-  <div class="layout">
-    <aside class="sidebar" id="sidebar">
-      <section class="import">
-        <label class="drop" id="drop">
-          <input type="file" id="fileInput" multiple accept=".txt,.md,.pdf,.docx,.html,.htm,.json,.rtf,image/*">
-          <strong>Drop recipe files here</strong>
-          <span>or click to choose · PDF, Word, text, photos, saved web pages</span>
-        </label>
-        <div class="import-opts">
-          <label>Save to collection
-            <input type="text" id="collectionInput" list="collectionList" placeholder="e.g. Mom’s Slovak cookbook">
-          </label>
-          <datalist id="collectionList"></datalist>
-          <label>Recipe language
-            <select id="ocrLang">
-              <option value="eng">English</option>
-              <option value="slk">Slovak</option>
-              <option value="ces">Czech</option>
-              <option value="pol">Polish</option>
-              <option value="hun">Hungarian</option>
-              <option value="deu">German</option>
-              <option value="fra">French</option>
-              <option value="ita">Italian</option>
-              <option value="spa">Spanish</option>
-              <option value="por">Portuguese</option>
-              <option value="ukr">Ukrainian</option>
-              <option value="rus">Russian</option>
-              <option value="ell">Greek</option>
-              <option value="tur">Turkish</option>
-              <option value="ara">Arabic</option>
-              <option value="urd">Urdu</option>
-              <option value="hin">Hindi</option>
-              <option value="vie">Vietnamese</option>
-              <option value="tgl">Tagalog</option>
-              <option value="chi_sim">Chinese (Simplified)</option>
-              <option value="jpn">Japanese</option>
-              <option value="kor">Korean</option>
-            </select>
-          </label>
-          <label class="check"><input type="checkbox" id="translateImport"> Translate to English</label>
-          <label class="check"><input type="checkbox" id="pagesMode"> These photos are pages of <b>one</b> recipe</label>
-        </div>
-        <details class="paste">
-          <summary>Paste text instead</summary>
-          <textarea id="pasteBox" rows="6" placeholder="Paste one or more recipes…"></textarea>
-          <button class="btn" id="pasteBtn">Tidy it up</button>
-        </details>
-        <div class="status" id="status" role="status" aria-live="polite"></div>
-      </section>
+  <main id="app" class="app"></main>
 
-      <section class="library">
-        <div class="lib-head">
-          <h2>Library <span id="count" class="muted"></span></h2>
-          <div class="lib-menu">
-            <button class="btn ghost small" id="exportAllBtn" title="Download a backup of all recipes">Backup</button>
-            <label class="btn ghost small" title="Restore from a backup file">Restore<input type="file" id="restoreInput" accept=".json" hidden></label>
-          </div>
-        </div>
-        <input type="search" id="search" placeholder="Search recipes or ingredients…">
-        <select id="collectionFilter" aria-label="Collection"></select>
-        <div class="chips" id="chips"></div>
-        <ul id="list" class="list"></ul>
-      </section>
-    </aside>
-    <div class="scrim" id="scrim"></div>
+  <!-- Hidden pickers the big buttons open -->
+  <input type="file" id="cameraInput" accept="image/*" capture="environment" hidden>
+  <input type="file" id="fileInput" accept=".txt,.md,.pdf,.docx,.html,.htm,.json,.rtf,image/*" multiple hidden>
+  <input type="file" id="restoreInput" accept=".json,application/json" hidden>
 
-    <main class="main" id="main"></main>
-    <label class="fab only-mobile" for="fileInput" aria-label="Add recipes">＋</label>
+  <!-- Full screen messages: working / done / problem / questions -->
+  <div class="overlay" id="overlay" hidden>
+    <div class="overlay-card" id="overlayCard" role="dialog" aria-modal="true" aria-live="polite"></div>
   </div>
 
-  <dialog id="settings">
-    <form method="dialog" class="dialog-body">
-      <h2>Settings</h2>
-      <h3>Translation</h3>
-      <p class="small muted">Translation runs on your device. Chrome's built-in translator is used when your browser has it; otherwise a translation model downloads once and then works offline.</p>
-      <label>Engine
-        <select id="mtEngine">
-          <option value="auto">Auto (Chrome built-in, then on-device model)</option>
-          <option value="model">On-device model only</option>
-        </select>
-      </label>
-      <label>On-device model
-        <select id="mtQuality">
-          <option value="light">Light: about 100 MB, quick (Slovak uses the Czech model)</option>
-          <option value="best">Best: about 900 MB once, better for Slovak (computers only, too big for phones)</option>
-        </select>
-      </label>
-      <h3>AI reading</h3>
-      <p class="muted">Recipe Tidy reads recipes with built-in rules for free. For very messy files, scanned PDFs and photos, you can let Claude read them instead using your own Anthropic API key.</p>
-      <label class="check"><input type="checkbox" id="aiOn"> Use AI to read files</label>
-      <label>Anthropic API key
-        <input type="password" id="apiKey" placeholder="sk-ant-…" autocomplete="off">
-      </label>
-      <label>Model
-        <input type="text" id="model" placeholder="claude-haiku-5-5">
-      </label>
-      <p class="small muted">Your key stays in this browser only and is sent straight to Anthropic. Get one at console.anthropic.com.</p>
-      <div class="row end">
-        <button class="btn danger ghost" id="wipeBtn" value="wipe" type="button">Delete all recipes</button>
-        <button class="btn" value="save" id="saveSettings">Save</button>
-      </div>
-    </form>
-  </dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script src="js/parser.js"></script>
   <script src="js/extract.js"></script>

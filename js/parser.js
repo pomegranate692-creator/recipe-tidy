@@ -237,6 +237,8 @@
     return /^#{1,3}\s/.test(line) || (t === t.toUpperCase() && /[A-Z]{3}/.test(t)) || /^\*\*.+\*\*$/.test(line.trim());
   }
 
+  const STEP_VERB = /^(predhrej\w*|zmieša\w*|vymieša\w*|prida\w*|nakrája\w*|uvarí\w*|upeč\w*|pečie\w*|necha\w*|rozvaľka\w*|preheat|heat|combine|mix|whisk|stir|add|place|bake|cook|bring|pour|remove|let|serve|season|cover|melt|beat|fold|transfer|spread|sprinkle|simmer|boil|grease|line|cut|chop|slice|blend|roll|knead|cream|set|top|drain|return|reduce|toss|mash|crush|dissolve|halve|scoop|divide|fill|brown|roast|scramble|preheat|refrigerate|chill|marinate|whip|puree|saute|sauté|fry|grill|arrange|shape|form|garnish|squeeze|peel|wash|rinse|soak|drop|ladle)\b/i;
+
   function isStepLike(line) {
     const t = line.replace(BULLET_RE, '');
     if (/^(?:step\s*)?\d+\s*[.):-]\s+\S/i.test(t)) return true;
@@ -252,6 +254,13 @@
     if (/^(salt|pepper|salt and pepper|oil|water|ice)\b/i.test(t) && t.length < 50) return true;
     if (/\bto taste\b|\bfor (?:garnish|serving|frying|greasing)\b|\bas needed\b|\boptional\b/i.test(t) && t.length < 70) return true;
     return false;
+  }
+
+  function looksLikeInstruction(line) {
+    const t = cleanLine(line).replace(BULLET_RE, '');
+    if (!t || isIngredientLike(t) || isGroupHeader(line)) return false;
+    const words = t.split(/\s+/).length;
+    return words >= 7 || (/[.!]$/.test(t) && words >= 4) || (words >= 3 && STEP_VERB.test(t));
   }
 
   function stripStepNum(t) {
@@ -287,14 +296,16 @@
     'Main dishes': 'chicken beef pork salmon kuracie bravcove hovadzie maso ryba'
   };
   const fold = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
-  const hasWord = (hay, w) => new RegExp(`(?:^|[^a-z])${w.replace(/ /g, '\\s+')}(?:$|[^a-z])`).test(hay);
+  const hasWord = (hay, w) => new RegExp(`(?:^|[^a-z])${w.replace(/ /g, '\\s+')}(?:s|es)?(?:$|[^a-z])`).test(hay);
+  const lastWord = s => (s.match(/[a-z]+(?=[^a-z]*$)/) || [''])[0];
   function categorize(r) {
     const title = fold(r.title + ' ' + (r.tags || []).join(' '));
     const ings = fold(r.groups.map(g => g.items.map(i => i.name).join(' ')).join(' '));
     let best = 'Other', score = 0;
     for (const c of Object.keys(CAT_WORDS)) {
       let sc = 0;
-      for (const w of CAT_WORDS[c].split(' ')) if (w.length > 2 && hasWord(title, w)) sc += 3 + w.length / 20;
+      const head = lastWord(title);
+      for (const w of CAT_WORDS[c].split(' ')) if (w.length > 2 && hasWord(title, w)) sc += 3 + w.length / 20 + (head === w || head === w + 's' || head === w + 'es' ? 2 : 0);
       for (const w of (ING_HINTS[c] || '').split(' ')) if (w.length > 2 && hasWord(ings, w)) sc += 0.6;
       if (sc > score) { score = sc; best = c; }
     }
@@ -371,7 +382,7 @@
 
       if (state === 'ing') {
         if (readMeta(line, r) && !isIngredientLike(line)) { blankBefore = false; continue; }
-        if (!hasDir && isStepLike(line)) { state = 'steps'; }
+        if (!hasDir && (isStepLike(line) || looksLikeInstruction(line))) { state = 'steps'; }
         else {
           const t = line.replace(BULLET_RE, '');
           if (isGroupHeader(line) && !isIngredientLike(t)) {
@@ -390,6 +401,24 @@
         }
       }
 
+      if (state === 'steps' || state === 'notes') {
+        // A second part of the dish ("Frosting:", "Na plnku:") followed by ingredients
+        const nx = lines.slice(i + 1).find(Boolean);
+        const subHead = (isGroupHeader(line) || /^(?:#+\s*)?(?:topping|filling|frosting|glaze|sauce|dressing|icing|crust|plnka|poleva)\b/i.test(line.replace(/^\*\*/, ''))) && line.length <= 45 && !isIngredientLike(line);
+        if (subHead && nx && isIngredientLike(nx)) {
+          const name = line.replace(/^#+\s*/, '').replace(/^\*\*|\*\*$/g, '').replace(/:$/, '').trim();
+          newGroup(name); state = 'ing2'; lastIng = null; blankBefore = false; continue;
+        }
+      }
+      if (state === 'ing2') {
+        if (isIngredientLike(line) || (lastIng && /^[\p{Ll}(]/u.test(line) && !looksLikeInstruction(line))) {
+          if (isIngredientLike(line)) { const ing = parseIngredient(line); group.items.push(ing); lastIng = ing; }
+          else { lastIng.raw += ' ' + line; lastIng.name += ' ' + line; }
+          blankBefore = false; continue;
+        }
+        state = 'steps';
+      }
+
       if (state === 'steps') {
         const t = line.replace(BULLET_RE, '');
         const numbered = /^(?:step\s*)?\d+\s*[.):-]\s*\S/i.test(t) || /^step\s*\d+\s*$/i.test(t);
@@ -400,7 +429,7 @@
         const continues = prev != null && !numbered && (
           prev === '' ||
           (stepNumbered && !blankBefore && !BULLET_RE.test(line)) ||
-          (!/[.!?:)]$/.test(prev) && /^[\p{Ll}(]/u.test(text))
+          (!/[.!?:)]$/.test(prev) && (/^[\p{Ll}(]/u.test(text) || prev.length >= 55))
         );
         if (continues) r.steps[r.steps.length - 1] = (prev ? prev + ' ' : '') + text;
         else r.steps.push(text);
@@ -418,38 +447,104 @@
     return finalize(r);
   }
 
-  // Split a document into one block per recipe.
+  // ---------- Splitting a document (a whole cookbook PDF) into one block per recipe ----------
+  const nonBlank = (lines, i, dir) => { for (let j = i + dir; j >= 0 && j < lines.length; j += dir) if (lines[j]) return j; return -1; };
+  const isSubHeading = l => /^(?:#+\s*)?(?:for (?:the )?|na |pre |to (?:serve|finish|decorate)|topping|filling|frosting|glaze|sauce|dressing|plnka|poleva)/i.test(l.replace(/^\*\*/, '')) || /:\s*$/.test(l);
+  const isIngHeader = l => ING_HDR.test(headerKey(l)) || /^ingredients?\s*:\s*\S/i.test(l) || /^suroviny\s*:\s*\S/i.test(l);
+
+  // Finds where each recipe starts. A new recipe begins when the current one already has
+  // ingredients AND steps, and then we hit a big heading, an "Ingredients" header, or a fresh
+  // run of ingredient lines. The title is found by looking back from that point.
   function splitBlocks(lines) {
-    const hdr = [];
-    lines.forEach((l, i) => { if (l && (ING_HDR.test(headerKey(l)) || /^ingredients?\s*:\s*\S/i.test(l))) hdr.push(i); });
-    if (hdr.length <= 1) return [lines];
+    const n = lines.length;
+    const ingLike = lines.map(l => !!l && !isIngHeader(l) && isIngredientLike(l));
     const starts = [];
-    let floor = 0;
-    for (let k = 0; k < hdr.length; k++) {
-      const h = hdr[k];
-      let titleIdx = -1, strongIdx = -1, seen = 0;
-      for (let j = h - 1; j >= floor && seen < 10; j--) {
+    let cur = null; // { start, hasIng, hasSteps, lastStep }
+
+    // Walk back from where the ingredients start to the recipe's name. A name is a short line
+    // that sits after a blank line, after the end of a sentence (the last recipe's final step),
+    // or is a big heading. Descriptions and "Serves 4" lines in between are skipped.
+    const findTitle = (from, floor) => {
+      let fallback = -1, seen = 0;
+      for (let j = from - 1; j >= floor && seen < 10; j--) {
         if (!lines[j]) continue;
         seen++;
-        if (strongIdx < 0 && isStrongTitle(lines[j])) strongIdx = j;
-        if (titleIdx < 0 && isTitleLike(lines[j])) titleIdx = j;
-        if (strongIdx >= 0) break;
+        if (ingLike[j] || /^(?:step\s*)?\d+\s*[.)]\s/i.test(lines[j])) break; // reached the previous recipe
+        if (!isTitleLike(lines[j]) || isSubHeading(lines[j])) continue;
+        if (isStrongTitle(lines[j])) return j;
+        const before = j - 1;
+        if (before < floor || !lines[before] || /[.!?)]$/.test(lines[before])) return j;
+        if (fallback < 0) fallback = j;
       }
-      let start = strongIdx >= 0 ? strongIdx : titleIdx >= 0 ? titleIdx : h;
-      if (k === 0) start = 0; // keep anything before the first recipe with it
-      starts.push(start);
-      floor = h + 1;
+      return fallback;
+    };
+
+    for (let i = 0; i < n; i++) {
+      const l = lines[i];
+      if (!l) continue;
+      const strong = isStrongTitle(l) && !isSubHeading(l);
+      const ingHdr = isIngHeader(l);
+      const prev = nonBlank(lines, i, -1), next = nonBlank(lines, i, 1);
+      const runStart = ingLike[i] && !(prev >= 0 && ingLike[prev]) && next >= 0 && ingLike[next];
+
+      if (!cur) {
+        // First recipe: starts at the first title before its ingredients (skips a cookbook's intro pages).
+        if (ingHdr || runStart) {
+          const t = findTitle(i, 0);
+          cur = { start: t >= 0 ? t : i, hasIng: true, hasSteps: false };
+          starts.push(cur.start);
+        }
+        continue;
+      }
+
+      const complete = cur.hasIng && cur.hasSteps;
+      const looseComplete = cur.hasIng && (cur.hasSteps || cur.hasText);
+      if ((complete && runStart) || (looseComplete && (strong || ingHdr))) {
+        let s = i, split = true;
+        if (!strong) {
+          const t = findTitle(i, cur.start + 1);
+          if (t >= 0) s = t;
+          // No name in front of these ingredients? Then it's a part of the same dish (e.g. the frosting).
+          else split = false;
+        }
+        if (split) {
+          cur = { start: s, hasIng: false, hasSteps: false, hasText: false };
+          starts.push(s);
+        }
+      }
+      if (ingHdr || ingLike[i]) cur.hasIng = true;
+      else if (cur.hasIng && (DIR_HDR.test(headerKey(l)) || isStepLike(l) || looksLikeInstruction(l) || (l.length > 50 && /[.!]$/.test(l)))) {
+        cur.hasSteps = true; cur.lastStep = i;
+      } else if (cur.hasIng && !isGroupHeader(l) && i > cur.start) { cur.hasText = true; }
     }
+    if (!starts.length) return [lines];
+    // Pull a title that sits just above a block's start into that block (e.g. "Ingredients" was the trigger).
     const blocks = [];
-    for (let k = 0; k < starts.length; k++) blocks.push(lines.slice(starts[k], k + 1 < starts.length ? starts[k + 1] : lines.length));
+    for (let k = 0; k < starts.length; k++) blocks.push(lines.slice(starts[k], k + 1 < starts.length ? starts[k + 1] : n));
     return blocks;
   }
 
+  // Remove page furniture: running headers/footers repeated on many pages, contents pages, page numbers.
+  function cleanDocument(lines) {
+    const junk = /^(page \d+( of \d+)?|\d{1,3}|[-–—]\s*\d{1,3}\s*[-–—]|print( recipe)?|jump to recipe|pin( it)?|save recipe|https?:\/\/\S+|www\.\S+|©.*)$/i;
+    const toc = /^.{2,60}?(?:\s?\.{3,}|\s{3,}|\t)\s*\d{1,4}$/; // "Banana Bread ....... 12"
+    const key = l => l.replace(/^#+\s*/, '').replace(/\d+/g, '#').toLowerCase().trim();
+    const counts = {};
+    lines.forEach(l => { if (l) { const k = key(l); counts[k] = (counts[k] || 0) + 1; } });
+    return lines.map(l => {
+      if (!l) return l;
+      if (junk.test(l.replace(/^#+\s*/, '')) || toc.test(l)) return '';
+      const k = key(l);
+      const hk = headerKey(l);
+      // Same short line on 3+ pages = running header/footer (but section words like "Ingredients" legitimately repeat)
+      if (counts[k] >= 3 && l.length < 60 && isTitleLike(l) && !ING_HDR.test(hk) && !DIR_HDR.test(hk) && !NOTE_HDR.test(hk) && !isIngredientLike(l) && !isGroupHeader(l)) return '';
+      return l;
+    });
+  }
+
   function parseText(text) {
-    const lines = String(text || '').replace(/\r\n?/g, '\n').split('\n').map(cleanLine);
-    // Drop obvious junk: page numbers, URLs alone, "Print recipe" etc.
-    const filtered = lines.map(l => (/^(page \d+( of \d+)?|\d{1,3}|print( recipe)?|jump to recipe|pin( it)?|save recipe|https?:\/\/\S+)$/i.test(l) ? '' : l));
-    const blocks = splitBlocks(filtered);
+    const lines = cleanDocument(String(text || '').replace(/\r\n?/g, '\n').replace(/\f/g, '\n').split('\n').map(cleanLine));
+    const blocks = splitBlocks(lines);
     return blocks.map(parseBlock).filter(r => r.groups.some(g => g.items.length) || r.steps.length);
   }
 

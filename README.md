@@ -11,7 +11,9 @@ Drop in PDFs, Word docs, text files, photos of cookbook pages or recipe cards, o
 - **Built-in translation to English:** runs on your device, free, no account. Uses Chrome's built-in translator when available, otherwise an open translation model (Opus-MT or NLLB-200) that downloads once and then works offline. European units convert too (dkg → g, dl → ml, PL → tbsp, ČL → tsp). Flip between English and the original anytime
 - **Auto categories:** Breakfast, Soups & stews, Salads, Main dishes, Sides, Breads & baking, Desserts, Sauces & dips, Snacks, Drinks, Preserves
 - **Collections:** file a batch under a name like "Mom's cookbook" and filter by it
-- **Multi page recipes:** tick "pages of one recipe" to combine several photos into one recipe
+- **Whole cookbooks:** a PDF or Word file with dozens of recipes is split into separate recipes, each sorted into its own category. Skips intro pages, contents pages, page numbers and running headers, and reads two column layouts
+- **Multi page recipes:** pick several photos and choose "One recipe" to combine them
+- **Made for everyone:** one big Add button, plain step by step questions, large readable text (Atkinson Hyperlegible) and a Text size setting
 - **Serving scaler:** quantities update as you change servings (fractions stay readable)
 - **Print and export:** clean printable recipe cards and Markdown export
 - **Edit anything** the parser got wrong
@@ -20,7 +22,7 @@ Drop in PDFs, Word docs, text files, photos of cookbook pages or recipe cards, o
 
 ## Translation
 
-Pick the **Recipe language** and tick **Translate to English** before importing, or hit **🌐 Translate** on any recipe later.
+Tap **Add a recipe**, choose **Another language**, pick the language and leave **Translate it into English for me** on, or hit **🌐 Translate** on any recipe later.
 
 | Engine | Size | Notes |
 |---|---|---|
@@ -66,7 +68,7 @@ js/translate.js   on-device translation (Chrome Translator, Transformers.js work
 js/translate-worker.js  model runner
 js/extract.js     file reading (pdf.js, mammoth, tesseract.js loaded on demand) and optional Claude API
 js/app.js         UI, library, storage
-test/             parser tests: node test/parser.test.js
+test/             node test/parser.test.js and node test/cookbook.test.js
 ```
 
 ## License

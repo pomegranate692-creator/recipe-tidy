@@ -1,6 +1,6 @@
 /* Recipe Tidy service worker: makes the app installable and usable offline.
  * Bump VERSION whenever you upload new files so phones pick up the update. */
-const VERSION = 'v1';
+const VERSION = 'v3';
 const SHELL = `recipe-tidy-shell-${VERSION}`;
 const LIBS = 'recipe-tidy-libs';
 const FILES = [
