@@ -134,7 +134,7 @@
 
   function cleanLine(s) {
     return String(s || '')
-      .replace(/ /g, ' ')
+      .replace(/\u00a0/g, ' ')
       .replace(/(\d)\s*⁄\s*(\d)/g, '$1/$2') // fraction slash
       .replace(/\s+/g, ' ')
       .trim();
@@ -192,11 +192,11 @@
   const ING_HDR = /^(?:ingredients?(?: list)?|what you(?:'|’)?ll need|you(?:'|’)?ll need|you will need|what you need|shopping list|suroviny|potrebné suroviny|potrebujeme|ingrediencie|ingredience|zutaten|ingredientes|ingrédients|ingredienti|składniki|hozzávalók)$/;
   const DIR_HDR = /^(?:directions?|instructions?|method|preparation|steps|prep(?:aration)? steps|how to make(?: it)?|procedure|to make|cooking instructions|the method|postup|postup prípravy|príprava|příprava|návod|zubereitung|preparación|elaboración|préparation|preparazione|procedimento|przygotowanie|sposób przygotowania|elkészítés)$/;
   const NOTE_HDR = /^(?:notes?|tips?|poznámka|poznámky|tip|rada|hinweis|tipps?|notas?|consejos?|astuces?|consigli|uwagi|cook(?:'|’)?s notes?|chef(?:'|’)?s notes?|recipe notes?|variations?|storage|to store|serving suggestions?|nutrition(?: facts| info(?:rmation)?)?)$/;
-  const INLINE_HDR = /^(ingredients?|directions?|instructions?|method|notes?|suroviny|postup|poznámka)\s*:\s*(.+)$/i;
+  const INLINE_HDR = /^(ingredients?|directions?|instructions?|method|notes?|tips?|cook(?:'|’)?s note|suroviny|postup|poznámka|tip)\s*:\s*(.+)$/i;
 
   const SERV_RE = /\b(?:serves|servings?|yields?|makes|portions?|feeds)\b\s*:?\s*(?:about|approx\.?|approximately)?\s*(\d+)(?:\s*(?:-|–|to)\s*(\d+))?\s*([a-z][a-z ]{0,20})?/i;
   const SERV_RE2 = /\b(?:porci[ea]|porcií|počet porcií|portionen|porciones|porzioni|portions)\s*:?\s*(\d+)|\b(?:pre|na|für|para|per|pour)\s+(\d+)\s*(?:os[oô]b|osoby|personen|personas|persone|personnes|porci)/i;
-  const TIME_VAL = '(\\d[\\d\\s\\/.½¼¾-]*\\s*(?:hodín|hodiny|hodina|hod|hours?|hrs?|hr|h|minút|minúty|minut|minutes?|mins?|min|m)\\b(?:\\s*(?:and\\s*)?\\d+\\s*(?:minutes?|mins?|min|m)\\b)?)';
+  const TIME_VAL = '(\\d[\\d\\s\\/.½¼¾-]*(?:(?:to|–)\\s*\\d[\\d\\s\\/.]*)?\\s*(?:hodín|hodiny|hodina|hod|hours?|hrs?|hr|h|minút|minúty|minut|minutes?|mins?|min|m)\\b(?:\\s*(?:and\\s*)?\\d+\\s*(?:minutes?|mins?|min|m)\\b)?)';
   const TIME_RES = {
     prep: new RegExp(`(?:čas prípravy|príprava|\\bprep(?:aration)?)(?:\\s*time)?\\s*:?\\s*${TIME_VAL}`, 'i'),
     cook: new RegExp(`(?:čas pečenia|čas varenia|pečenie|varenie|\\bcook(?:ing)?|\\bbake|\\bbaking)(?:\\s*time)?\\s*:?\\s*${TIME_VAL}`, 'i'),
@@ -219,6 +219,7 @@
   }
 
   function isTitleLike(line) {
+    if (/^\s*(?:[•·▪◦‣–—]|[-*+](?=\s))/.test(line)) return false; // a bulleted line is never a title
     const t = line.replace(/^#+\s*/, '').replace(/^\*\*|\*\*$/g, '').trim();
     if (!t || t.length > 70 || t.length < 2) return false;
     if (/[.!?,;]$/.test(t) && !/\.\.\.$/.test(t)) return false;
@@ -228,6 +229,7 @@
     if (ING_HDR.test(k) || DIR_HDR.test(k) || NOTE_HDR.test(k)) return false;
     if (SERV_RE.test(t) || SERV_RE2.test(t) || TIME_RES.prep.test(t) || TIME_RES.cook.test(t) || TIME_RES.total.test(t)) return false;
     if (/^(page \d+|\d+)$/i.test(t)) return false;
+    if (/^[\p{L} ]{2,20}:\s*\S*\d/u.test(t)) return false; // "Oven: 425°F", "Makes: 6"
     return /\p{L}/u.test(t);
   }
 
@@ -237,13 +239,22 @@
     return /^#{1,3}\s/.test(line) || (t === t.toUpperCase() && /[A-Z]{3}/.test(t)) || /^\*\*.+\*\*$/.test(line.trim());
   }
 
-  const STEP_VERB = /^(predhrej\w*|zmieša\w*|vymieša\w*|prida\w*|nakrája\w*|uvarí\w*|upeč\w*|pečie\w*|necha\w*|rozvaľka\w*|preheat|heat|combine|mix|whisk|stir|add|place|bake|cook|bring|pour|remove|let|serve|season|cover|melt|beat|fold|transfer|spread|sprinkle|simmer|boil|grease|line|cut|chop|slice|blend|roll|knead|cream|set|top|drain|return|reduce|toss|mash|crush|dissolve|halve|scoop|divide|fill|brown|roast|scramble|preheat|refrigerate|chill|marinate|whip|puree|saute|sauté|fry|grill|arrange|shape|form|garnish|squeeze|peel|wash|rinse|soak|drop|ladle)\b/i;
+  const STEP_VERB = /^(predhrej\w*|zmieša\w*|vymieša\w*|prida\w*|nakrája\w*|uvarí\w*|upeč\w*|pečie\w*|necha\w*|rozvaľka\w*|preheat|heat|combine|mix|whisk|stir|add|place|bake|cook|bring|pour|remove|let|serve|season|cover|melt|beat|fold|transfer|spread|sprinkle|simmer|boil|grease|line|cut|chop|slice|blend|roll|knead|cream|set|top|drain|return|reduce|toss|mash|crush|dissolve|halve|scoop|divide|fill|brown|roast|scramble|preheat|refrigerate|chill|marinate|whip|puree|saute|sauté|fry|grill|arrange|shape|form|garnish|squeeze|peel|wash|rinse|soak|drop|ladle|sift|switch|cool|taste|reheat|gently|generously|immediately|dust|repeat|wrap)\b/i;
 
   function isStepLike(line) {
     const t = line.replace(BULLET_RE, '');
     if (/^(?:step\s*)?\d+\s*[.):-]\s+\S/i.test(t)) return true;
+    if (bareStep(t)) return true;
     if (t.length > 70 && /[.!]$/.test(t)) return true;
     return /^(predhrej|zmiešame|zmiešajte|vymiešame|pridáme|pridajte|nakrájame|uvaríme|pečieme|necháme|rozvaľkáme|preheat|heat|in a|combine|mix|whisk|stir|add|place|bake|cook|bring|pour|remove|let|serve|season|cover|melt|beat|fold|transfer|spread|sprinkle|simmer|boil|grease|line|cut|chop|slice|blend|roll|knead|cream|set|top|drain|return|reduce)\b/i.test(t) && t.split(' ').length > 5;
+  }
+
+  // "1 Pour the milk into the bowl." (a step number with no period, as in many PDFs)
+  function bareStep(t) {
+    const m = t.match(/^(\d{1,2})\s+(\p{Lu}\p{Ll}+)\b(.*)$/u);
+    if (!m || matchUnit(m[2] + m[3])) return false;
+    const words = t.split(/\s+/).length;
+    return words >= 5 && (STEP_VERB.test(m[2]) || /[.!]$/.test(t) || t.length > 60);
   }
 
   function isIngredientLike(line) {
@@ -295,7 +306,7 @@
     'Desserts': 'baking powder baking soda powdered sugar cocoa vanilla prasok do peciva vanilkovy cukor kakao maslo cukor',
     'Main dishes': 'chicken beef pork salmon kuracie bravcove hovadzie maso ryba'
   };
-  const fold = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  const fold = s => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   const hasWord = (hay, w) => new RegExp(`(?:^|[^a-z])${w.replace(/ /g, '\\s+')}(?:s|es)?(?:$|[^a-z])`).test(hay);
   const lastWord = s => (s.match(/[a-z]+(?=[^a-z]*$)/) || [''])[0];
   function categorize(r) {
@@ -319,14 +330,23 @@
 
   // ---------- Recipe model ----------
   function emptyRecipe() {
-    return { title: '', description: '', servings: null, yieldText: '', times: { prep: '', cook: '', total: '' }, groups: [], steps: [], notes: [], tags: [] };
+    return { title: '', description: '', servings: null, yieldText: '', times: { prep: '', cook: '', total: '' }, groups: [], steps: [], stepSections: [], notes: [], tags: [] };
   }
 
   function finalize(r) {
     r.groups = r.groups.filter(g => g.items.length);
     r.title = (r.title || '').replace(/^#+\s*/, '').replace(/^\*\*|\*\*$/g, '').trim() || 'Untitled recipe';
     if (r.title === r.title.toUpperCase() && r.title.length > 3) r.title = titleCase(r.title);
+    if (r.facts && r.facts.length) r.description = [r.description.trim(), r.facts.join(' · ')].filter(Boolean).join(' · ');
+    delete r.facts;
     r.description = r.description.trim();
+    // Drop empty steps and keep the step section headings ("Make the dough") pointing at the right step
+    const at = [];
+    let kept = 0;
+    r.steps.forEach(s => { at.push(kept); if (s.trim()) kept++; });
+    at.push(kept);
+    r.stepSections = (r.stepSections || []).map(x => ({ at: at[Math.min(x.at, at.length - 1)], name: x.name }))
+      .filter((x, i, a) => x.name && x.at < kept && !(a[i + 1] && a[i + 1].at === x.at));
     r.steps = r.steps.map(s => s.trim()).filter(Boolean);
     r.notes = r.notes.map(s => s.trim()).filter(Boolean);
     r.category = normalizeCategory(r.category) || categorize(r);
@@ -348,11 +368,16 @@
     let lastIng = null;
     let stepNumbered = false;
     let blankBefore = false;
-    const newGroup = name => { group = { name: name || '', items: [] }; r.groups.push(group); };
+    let mainBullet = '';
+    const subbed = new Set();
+    const newGroup = name => { group = { name: name || '', items: [] }; r.groups.push(group); mainBullet = ''; };
+    const bulletOf = l => (l.match(/^\s*([-*•·▪◦‣–—+>])\s/) || [])[1] || '';
+    const nextLine = i => lines.slice(i + 1).find(l => l && !isMark(l)) || '';
 
     for (let i = 0; i < lines.length; i++) {
       let line = lines[i];
       if (!line) { blankBefore = true; continue; }
+      if (isMark(line)) { r.category = line.slice(MARK.length); continue; }
       const key = headerKey(line);
 
       // Section headers
@@ -364,7 +389,7 @@
         const which = inl[1].toLowerCase();
         line = inl[2].trim();
         if (which.startsWith('ingr')) { state = 'ing'; newGroup(''); }
-        else if (which.startsWith('note')) state = 'notes';
+        else if (/^(note|tip|cook)/.test(which)) state = 'notes';
         else state = 'steps';
         if (state === 'ing' && /,/.test(line) && (line.match(new RegExp(NUM, 'g')) || []).length > 1) {
           line.split(/\s*,\s*(?=\S)/).forEach(p => { const it = parseIngredient(p); group.items.push(it); lastIng = it; });
@@ -375,6 +400,8 @@
       if (state === 'pre') {
         if (!r.title && isTitleLike(line)) { r.title = line; blankBefore = false; continue; }
         if (readMeta(line, r)) { blankBefore = false; continue; }
+        // "Oven: 450°F", "Rise: 1 hr" and other short facts from a recipe's header strip
+        if (/^\p{Lu}[\p{L} ]{1,18}: \S/u.test(line) && line.length <= 50 && !isIngredientLike(line)) { (r.facts = r.facts || []).push(line); blankBefore = false; continue; }
         if (!hasIng && isIngredientLike(line)) { state = 'ing'; newGroup(''); }
         else if (!hasIng && !hasDir && r.title && isStepLike(line) && r.groups.length) { state = 'steps'; }
         else { r.description += (r.description ? ' ' : '') + line; blankBefore = false; continue; }
@@ -385,10 +412,22 @@
         if (!hasDir && (isStepLike(line) || looksLikeInstruction(line))) { state = 'steps'; }
         else {
           const t = line.replace(BULLET_RE, '');
-          if (isGroupHeader(line) && !isIngredientLike(t)) {
+          // A plain short line over a bulleted list is a group name ("Dough", "Filling", "Tomato Sauce")
+          const nx = nextLine(i);
+          const plainHead = !bulletOf(line) && bulletOf(nx) && line.length <= 40 && line.split(/\s+/).length <= 5 && isTitleLike(line) && !isIngredientLike(line);
+          if ((isGroupHeader(line) || plainHead) && !isIngredientLike(t)) {
             const name = t.replace(/^#+\s*/, '').replace(/^\*\*|\*\*$/g, '').replace(/:$/, '').trim();
             if (group && !group.items.length) group.name = name; else newGroup(name);
             lastIng = null; blankBefore = false; continue;
+          }
+          // A sub-bullet ("– Onion" under "• Vegetable toppings") belongs to the item above it
+          const bc = bulletOf(line);
+          if (bc && !mainBullet) mainBullet = bc;
+          if (bc && bc !== mainBullet && lastIng) {
+            const sep = subbed.has(lastIng) ? ', ' : ': ';
+            subbed.add(lastIng);
+            lastIng.raw += sep + t.trim(); lastIng.name += sep + t.trim();
+            blankBefore = false; continue;
           }
           // wrapped continuation line (common in PDFs)
           if (lastIng && !blankBefore && !BULLET_RE.test(line) && /^[\p{Ll}(]/u.test(t) && !isIngredientLike(t) && !matchUnit(t) &&
@@ -421,10 +460,18 @@
 
       if (state === 'steps') {
         const t = line.replace(BULLET_RE, '');
-        const numbered = /^(?:step\s*)?\d+\s*[.):-]\s*\S/i.test(t) || /^step\s*\d+\s*$/i.test(t);
+        // A short heading inside the method ("Make the Dough", "Bake") followed by a numbered step
+        const nx = nextLine(i);
+        if (/^\p{Lu}/u.test(t) && t.length <= 40 && t.split(/\s+/).length <= 5 && !/[.!?:,;)]$/.test(t) && isTitleLike(line) &&
+          (/^(?:step\s*)?\d+\s*[.):-]\s*\S/i.test(nx) || bareStep(nx))) {
+          r.stepSections.push({ at: r.steps.length, name: t.replace(/^#+\s*/, '').trim() });
+          blankBefore = false; continue;
+        }
+        const bare = bareStep(t);
+        const numbered = /^(?:step\s*)?\d+\s*[.):-]\s*\S/i.test(t) || /^step\s*\d+\s*$/i.test(t) || bare;
         if (/^step\s*\d+\s*:?\s*$/i.test(t)) { r.steps.push(''); stepNumbered = true; blankBefore = false; continue; }
         if (numbered) stepNumbered = true;
-        const text = stripStepNum(line);
+        const text = bare ? t.replace(/^\d+\s+/, '').trim() : stripStepNum(line);
         const prev = r.steps.length ? r.steps[r.steps.length - 1] : null;
         const continues = prev != null && !numbered && (
           prev === '' ||
@@ -447,6 +494,33 @@
     return finalize(r);
   }
 
+  // ---------- Cookbook section labels ----------
+  // A small all-caps line right above a recipe's big title ("DESSERTS" over "# Apple Pie") is the
+  // book's own section. It isn't the title; it tells us the category.
+  const MARK = '\u0001cat:';
+  const isMark = l => typeof l === 'string' && l.startsWith(MARK);
+  const SECTION_CATS = [
+    [/^(breakfast|brunch)/, 'Breakfast'], [/^(soups?|stews?|soups (and|&) stews)$/, 'Soups & stews'], [/^salads?$/, 'Salads'],
+    [/^(mains?|main (dishes|courses?|meals?)|entr[eé]es?|dinners?)$/, 'Main dishes'], [/^sides?( dishes)?$/, 'Sides'],
+    [/^(breads?|baking|breads (and|&) baking)$/, 'Breads & baking'], [/^(desserts?|sweets|cakes|cookies|treats)$/, 'Desserts'],
+    [/^(sauces?|dips?|dressings?|sauces (and|&) dips)$/, 'Sauces & dips'], [/^(appetizers?|starters?|snacks?|snacks (and|&) appetizers)$/, 'Snacks & appetizers'],
+    [/^(drinks?|beverages?|cocktails?)$/, 'Drinks'], [/^(preserves?|canning|pickles)$/, 'Preserves']
+  ];
+  function markSections(lines) {
+    const out = lines.slice();
+    for (let i = 0; i < out.length; i++) {
+      const l = out[i];
+      if (!l || !/^[A-Z][A-Z &'’-]{2,30}$/.test(l) || !/[A-Z]{3}/.test(l)) continue;
+      const nx = nonBlank(out, i, 1);
+      if (nx < 0 || nx - i > 2 || !/^#\s/.test(out[nx])) continue;
+      const k = l.toLowerCase().trim();
+      const hit = SECTION_CATS.find(([re]) => re.test(k));
+      out[i] = '';
+      if (hit) out.splice(nx + 1, 0, MARK + hit[1]);
+    }
+    return out;
+  }
+
   // ---------- Splitting a document (a whole cookbook PDF) into one block per recipe ----------
   const nonBlank = (lines, i, dir) => { for (let j = i + dir; j >= 0 && j < lines.length; j += dir) if (lines[j]) return j; return -1; };
   const isSubHeading = l => /^(?:#+\s*)?(?:for (?:the )?|na |pre |to (?:serve|finish|decorate)|topping|filling|frosting|glaze|sauce|dressing|plnka|poleva)/i.test(l.replace(/^\*\*/, '')) || /:\s*$/.test(l);
@@ -457,7 +531,7 @@
   // run of ingredient lines. The title is found by looking back from that point.
   function splitBlocks(lines) {
     const n = lines.length;
-    const ingLike = lines.map(l => !!l && !isIngHeader(l) && isIngredientLike(l));
+    const ingLike = lines.map(l => !!l && !isMark(l) && !isIngHeader(l) && isIngredientLike(l));
     const starts = [];
     let cur = null; // { start, hasIng, hasSteps, lastStep }
 
@@ -465,9 +539,16 @@
     // that sits after a blank line, after the end of a sentence (the last recipe's final step),
     // or is a big heading. Descriptions and "Serves 4" lines in between are skipped.
     const findTitle = (from, floor) => {
+      // A big heading close above wins over any other short line
+      for (let j = from - 1, seen = 0; j >= floor && seen < 10; j--) {
+        if (!lines[j] || isMark(lines[j])) continue;
+        seen++;
+        if (ingLike[j] || /^(?:step\s*)?\d+\s*[.)]\s/i.test(lines[j])) break;
+        if (/^#\s/.test(lines[j]) && isStrongTitle(lines[j]) && !isSubHeading(lines[j])) return j;
+      }
       let fallback = -1, seen = 0;
       for (let j = from - 1; j >= floor && seen < 10; j--) {
-        if (!lines[j]) continue;
+        if (!lines[j] || isMark(lines[j])) continue;
         seen++;
         if (ingLike[j] || /^(?:step\s*)?\d+\s*[.)]\s/i.test(lines[j])) break; // reached the previous recipe
         if (!isTitleLike(lines[j]) || isSubHeading(lines[j])) continue;
@@ -481,7 +562,7 @@
 
     for (let i = 0; i < n; i++) {
       const l = lines[i];
-      if (!l) continue;
+      if (!l || isMark(l)) continue;
       const strong = isStrongTitle(l) && !isSubHeading(l);
       const ingHdr = isIngHeader(l);
       const prev = nonBlank(lines, i, -1), next = nonBlank(lines, i, 1);
@@ -512,7 +593,8 @@
           starts.push(s);
         }
       }
-      if (ingHdr || ingLike[i]) cur.hasIng = true;
+      const bulletInList = /^\s*[-*•·▪◦‣–—+]\s/.test(l) && ((prev >= 0 && ingLike[prev]) || (next >= 0 && ingLike[next]));
+      if (ingHdr || ingLike[i] || bulletInList) cur.hasIng = true;
       else if (cur.hasIng && (DIR_HDR.test(headerKey(l)) || isStepLike(l) || looksLikeInstruction(l) || (l.length > 50 && /[.!]$/.test(l)))) {
         cur.hasSteps = true; cur.lastStep = i;
       } else if (cur.hasIng && !isGroupHeader(l) && i > cur.start) { cur.hasText = true; }
@@ -532,7 +614,7 @@
     const counts = {};
     lines.forEach(l => { if (l) { const k = key(l); counts[k] = (counts[k] || 0) + 1; } });
     return lines.map(l => {
-      if (!l) return l;
+      if (!l || isMark(l)) return l;
       if (junk.test(l.replace(/^#+\s*/, '')) || toc.test(l)) return '';
       const k = key(l);
       const hk = headerKey(l);
@@ -543,7 +625,7 @@
   }
 
   function parseText(text) {
-    const lines = cleanDocument(String(text || '').replace(/\r\n?/g, '\n').replace(/\f/g, '\n').split('\n').map(cleanLine));
+    const lines = cleanDocument(markSections(String(text || '').replace(/\r\n?/g, '\n').replace(/\f/g, '\n').split('\n').map(cleanLine)));
     const blocks = splitBlocks(lines);
     return blocks.map(parseBlock).filter(r => r.groups.some(g => g.items.length) || r.steps.length);
   }
@@ -642,6 +724,7 @@
   }
 
   // ---------- Back to text (for editing / export) ----------
+  const sectionsAt = (r, i) => (r.stepSections || []).filter(x => x.at === i).map(x => x.name);
   function toEditableText(r) {
     const out = [r.title, ''];
     if (r.description) out.push(r.description, '');
@@ -652,7 +735,7 @@
     out.push('', 'Ingredients');
     r.groups.forEach(g => { if (g.name) out.push('', g.name + ':'); g.items.forEach(i => out.push('- ' + i.raw)); });
     out.push('', 'Directions');
-    r.steps.forEach((s, i) => out.push(`${i + 1}. ${s}`));
+    r.steps.forEach((s, i) => { sectionsAt(r, i).forEach(n => out.push(n)); out.push(`${i + 1}. ${s}`); });
     if (r.notes.length) { out.push('', 'Notes'); r.notes.forEach(n => out.push('- ' + n)); }
     return out.join('\n');
   }
@@ -674,12 +757,90 @@
       out.push('');
     });
     out.push('## Directions', '');
-    r.steps.forEach((s, i) => out.push(`${i + 1}. ${s}`));
+    r.steps.forEach((s, i) => { sectionsAt(r, i).forEach(n => out.push('', `**${n}**`, '')); out.push(`${i + 1}. ${s}`); });
     if (r.notes.length) { out.push('', '## Notes', ''); r.notes.forEach(n => out.push(`- ${n}`)); }
     return out.join('\n') + '\n';
   }
 
-  const api = { CATEGORIES, categorize, toEnglishUnits, parseText, parseBlock, parseIngredient, formatIngredient, formatQty, parseNum, parseJsonLd, fromAI, toEditableText, toMarkdown };
+  // ---------- PDF layout → text ----------
+  // pages: [{ width, items: [{ x, y, h, w, s }] }] (pdf.js text pieces). Rebuilds lines column by
+  // column, marks big-font lines as headings ("# "), adds a period to bare step numbers
+  // ("1   Pour the milk" → "1. Pour the milk") and turns label rows that sit over value rows
+  // (PREP / COOK / MAKES with "30 min" / "22 min" / "12 rolls" under them) into "Prep: 30 min" lines.
+  function layoutPdfText(pages) {
+    const allLines = []; // { text, h, gapBefore }
+    const isLabel = s => /^[A-Z][A-Z&/ ]{1,18}$/.test(s.trim()) && s.trim().split(/\s+/).length <= 2;
+    const cap = s => s.charAt(0) + s.slice(1).toLowerCase();
+    for (const pg of pages) {
+      const items = pg.items.filter(it => it.s && it.s.trim());
+      const mid = pg.width / 2;
+      const crossing = items.filter(it => it.x < mid - 8 && it.x + it.w > mid + 8).length;
+      const left = items.filter(it => it.x + it.w <= mid + 8), right = items.filter(it => it.x >= mid - 8);
+      // Two-column cookbook pages: read the left column, then the right one. Rows of spread-out
+      // labels and values (the PREP / COOK strip) are not columns, so they don't count against it.
+      const twoCol = items.length > 20 && crossing < items.length * 0.08 && left.length > items.length * 0.2 && right.length > items.length * 0.2 &&
+        !items.some(it => isLabel(it.s) && items.filter(o => Math.abs(o.y - it.y) < 1 && isLabel(o.s)).length >= 3);
+      const columns = twoCol ? [items.filter(it => it.x < mid - 8), items.filter(it => it.x >= mid - 8)] : [items];
+      for (const col of columns) {
+        const rows = [];
+        for (const it of col) {
+          let row = rows.find(r => Math.abs(r.y - it.y) < Math.max(r.h, it.h) * 0.5);
+          if (!row) { row = { y: it.y, h: it.h, parts: [] }; rows.push(row); }
+          row.h = Math.max(row.h, it.h);
+          row.parts.push(it);
+        }
+        rows.sort((a, b) => b.y - a.y);
+        rows.forEach(r => r.parts.sort((a, b) => a.x - b.x));
+        let prevY = null, prevH = 10;
+        for (let k = 0; k < rows.length; k++) {
+          const r = rows[k];
+          const gap = prevY != null && prevY - r.y > Math.max(prevH, r.h) * 1.9;
+          prevY = r.y; prevH = r.h;
+          // Label row over a value row → "Label: value" lines
+          const nx = rows[k + 1];
+          if (nx && r.parts.every(p => isLabel(p.s)) && r.y - nx.y < r.h * 3.5 && nx.h < r.h * 1.8 && (r.parts.length >= 2 || nx.h > r.h * 1.1) &&
+            !nx.parts.every(p => isLabel(p.s)) && nx.parts.length >= r.parts.length) {
+            const vals = r.parts.map(() => []);
+            for (const v of nx.parts) {
+              const c = v.x + v.w / 2;
+              let best = 0, bd = Infinity;
+              r.parts.forEach((p, j) => { const d = Math.abs(p.x + p.w / 2 - c); if (d < bd) { bd = d; best = j; } });
+              vals[best].push(v.s.trim());
+            }
+            if (vals.every(v => v.length)) {
+              allLines.push({ text: '', h: 0 });
+              r.parts.forEach((p, j) => allLines.push({ text: cap(p.s.trim()) + ': ' + vals[j].join(' '), h: nx.h }));
+              allLines.push({ text: '', h: 0 });
+              k++; prevY = nx.y; prevH = nx.h;
+              continue;
+            }
+          }
+          let line = '', end = null;
+          r.parts.forEach((pt, j) => {
+            if (end != null && pt.x - end > 1.5 && !/\s$/.test(line) && !/^\s/.test(pt.s)) line += ' ';
+            // A bare step number set apart from its text: "1      Pour…" → "1. Pour…"
+            if (j === 1 && /^\d{1,3}$/.test(line.trim()) && pt.x - end > 6 && /^\s*\p{L}/u.test(pt.s)) line = line.trim() + '. ';
+            line += pt.s; end = pt.x + pt.w;
+          });
+          allLines.push({ text: line.trim(), h: r.h, gapBefore: gap });
+        }
+        allLines.push({ text: '', h: 0 }); // column / page break
+      }
+    }
+    // Lines in a clearly bigger font than the body text are headings (recipe titles).
+    const sizes = allLines.filter(l => l.text).map(l => Math.round(l.h * 2) / 2).sort((a, b) => a - b);
+    const body = sizes.length ? sizes[Math.floor(sizes.length / 2)] : 10;
+    const out = [];
+    for (const l of allLines) {
+      if (!l.text) { out.push(''); continue; }
+      if (l.gapBefore) out.push('');
+      const heading = l.h >= body * 1.25 && l.text.length <= 70 && !/[.,;:]$/.test(l.text) && !/^\S+: /.test(l.text) && /\p{L}/u.test(l.text);
+      out.push(heading ? '# ' + l.text : l.text);
+    }
+    return out.join('\n');
+  }
+
+  const api = { layoutPdfText, CATEGORIES, categorize, toEnglishUnits, parseText, parseBlock, parseIngredient, formatIngredient, formatQty, parseNum, parseJsonLd, fromAI, toEditableText, toMarkdown };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.RecipeParser = api;
 })(typeof window !== 'undefined' ? window : this);

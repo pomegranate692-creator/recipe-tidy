@@ -1,0 +1,726 @@
+Warning: Cannot polyfill `DOMMatrix`, rendering may be broken: "Error: Cannot find module 'canvas'
+Require stack:
+- /home/claude/rs/node_modules/pdfjs-dist/legacy/build/pdf.js
+- /home/claude/rs/test/pdfrun.js".
+Warning: Cannot polyfill `Path2D`, rendering may be broken: "Error: Cannot find module 'canvas'
+Require stack:
+- /home/claude/rs/node_modules/pdfjs-dist/legacy/build/pdf.js
+- /home/claude/rs/test/pdfrun.js".
+Warning: fetchStandardFontData: failed to fetch file "LiberationSans-Regular.ttf" with "UnknownErrorException: The standard font "baseUrl" parameter must be specified, ensure that the "standardFontDataUrl" API parameter is provided.".
+# Tried and True
+# Recipes
+# 13 favorites, from breakfast to dessert
+
+# Contents
+BREAKFAST
+
+Belgian Waffles
+
+Homemade Cinnamon Rolls
+
+APPETIZERS
+
+Spinach Puffs
+
+MAINS
+
+Pizza Dough
+
+Cheese Pizza
+
+Spaghetti and Chicken Meatballs
+
+Sauerkraut with Sausage
+
+DESSERTS
+
+Perfect Pie Crust
+
+Apple Pie
+
+Chocolate Lava Cake
+
+Chocolate Chip Cookie Brownie Skillet
+
+Chocolate Chip Cookies
+
+Crème Brûlée
+
+Tried and True Recipes
+
+3
+
+4
+
+6
+
+7
+
+8
+
+9
+
+11
+
+12
+
+13
+
+14
+
+15
+
+17
+
+18
+
+2
+
+BREAKFAST
+# Belgian Waffles
+
+Makes: 6 waffles
+
+
+Ingredients
+• 2 cups flour
+• 4 tsp baking powder
+• 1/2 tsp salt
+• 1/2 cup sugar
+• 2 eggs, separated
+• 1/2 cup vegetable oil
+• 2 cups milk
+• 1 to 2 tsp vanilla
+
+Instructions
+1. Sift (optional) the dry ingredients into a large bowl, then mix.
+
+2. In a separate bowl, beat the egg whites until stiff peaks form.
+
+3. In another bowl, mix the vanilla, milk, egg yolks and oil.
+
+4. Combine the wet ingredients with the dry ingredients, leaving out the whites.
+
+5. Fold in the whites until just combined.
+
+6. Cook in the waffle maker on medium for 2 to 3 minutes, then raise the heat and cook until the
+steam stops. Keep an eye on it so it doesn't burn.
+
+Tried and True Recipes 3
+
+BREAKFAST
+# Homemade Cinnamon Rolls
+
+Prep: 30 min
+Cook: 22 min
+Rise: 1 hr 10 min
+Total: 1 hr 59 min
+Makes: 12 rolls
+
+
+Ingredients
+Dough
+• 1 cup warm milk (about 115°F)
+• 2 1/2 tsp instant dry yeast (Red Star Platinum recommended)
+• 2 large eggs, room temperature
+• 1/2 cup salted butter, barely melted or softened (not hot)
+• 4 1/2 cups all purpose flour, divided
+• 1 tsp salt
+• 1/2 cup granulated sugar
+
+Filling
+• 1/2 cup salted butter, almost melted
+• 1 cup packed brown sugar
+• 2 tbsp cinnamon
+• 1/2 cup heavy cream (poured over the risen rolls)
+
+Frosting
+• 6 oz cream cheese, softened
+• 1/3 cup salted butter, softened
+• 2 cups powdered sugar
+• 1/2 tbsp maple extract (or vanilla)
+
+Instructions
+Make the Dough
+1. Pour the warm milk into the bowl of a stand mixer and sprinkle the yeast over the top.
+
+2. Add the eggs, butter, salt and sugar.
+
+3. Add 4 cups of the flour (save the last 1/2 cup in case you need it) and mix with the beater blade just
+until barely combined. Let it rest 5 minutes so the flour soaks up the liquid.
+
+4. Switch to the dough hook. Beat on medium, adding up to 1/2 cup more flour if needed, and knead 5
+to 7 minutes until elastic and smooth. The dough should be tacky and still stick to the sides of the
+bowl. That's fine, don't add more flour.
+
+5. Oil a large bowl, place the dough inside, cover lightly and let it rise somewhere warm for about 30
+minutes. Too much rising makes the rolls airy.
+
+Fill and Shape
+6. In a medium bowl, mix the soft butter, brown sugar and cinnamon until well combined.
+
+Tried and True Recipes 4
+
+7. Flour your surface and rolling pin and roll the dough into roughly a 24 x 15 inch rectangle. It doesn't
+have to be exact.
+
+8. Spread the filling over the whole surface. Don't skip the edges.
+
+9. Roll up tightly (hot dog style), cut into 12 pieces, place in a pan and let rise until doubled.
+
+Bake
+10. Preheat the oven to 375°F.
+
+11. Warm the heavy cream until lukewarm and pour it evenly over the risen rolls.
+
+12. Bake at 375°F for 20 to 22 minutes, until lightly golden and the center rolls are cooked through. Time
+varies with roll size and quantity.
+
+Frost
+13. Beat the cream cheese, butter, powdered sugar and extract with a hand mixer until smooth.
+
+14. Spread over the cooled rolls. Store in an airtight container.
+
+Tried and True Recipes 5
+
+APPETIZERS
+# Spinach Puffs
+
+Oven: 450°F
+Bake: 20 min
+
+
+Ingredients
+• 2 to 3 cups spinach, roughly chopped
+• 3 tbsp dill, finely chopped
+• 1 shallot, finely minced
+• 3 large cloves garlic, crushed
+• Olive oil
+• Salt and pepper
+• 2 eggs, separated
+• 4 oz full fat cream cheese
+• 1/2 cup feta cheese
+• 2 to 4 oz parmesan, grated
+• 2 to 3 slices bacon, finely chopped
+• 1 package puff pastry
+
+Instructions
+Filling
+1. Rinse the spinach, remove the stems and chop into small bite sized pieces. Finely chop the dill and
+mince the shallot.
+
+2. Heat olive oil in a pan over medium high. Cook the shallot about 2 minutes until translucent, then
+add the garlic for about 30 seconds until fragrant.
+
+3. Add the spinach with a pinch of salt and cook it down. Add the dill, sauté briefly, then add some
+fresh pepper. Remove from heat.
+
+4. In a mixing bowl, combine the cream cheese, feta and parmesan. Stir in the spinach mixture, the
+bacon and one egg yolk.
+
+Assemble and Bake
+5. Preheat the oven to 450°F.
+
+6. Flour your surface well and lay out the puff pastry. Roll lightly to remove creases, cut into 3 to 4 inch
+squares and place on a parchment lined baking sheet.
+
+7. Spoon about 2 tbsp of filling onto each square. Beat an egg and brush two edges of each square,
+then fold and crimp the egg washed edges together. (Playing '80s power ballads is strongly
+encouraged.)
+
+8. Chill the whole tray in the fridge for 10 minutes. Brush each pastry with egg wash and bake 20
+minutes, rotating the pan at 10 minutes.
+
+9. Cool on a wire rack, then serve.
+
+Tried and True Recipes 6
+
+MAINS
+# Pizza Dough
+
+Prep: 15 min
+Rise: 30 min
+Cook: 15 min
+Total: 1 hr
+Makes: One 10 to 12" pizza
+
+
+Ingredients
+• 2 to 2 1/3 cups all purpose or bread flour, divided (250 to 295 g)
+• 1 packet instant yeast (2 1/4 tsp)
+• 1 1/2 tsp sugar
+• 3/4 tsp salt
+• 1/8 to 1/4 tsp garlic powder and/or dried basil (optional)
+• 2 tbsp olive oil, plus more for the bowl and crust
+• 3/4 cup warm water (175 ml)
+
+Instructions
+1. In a large bowl, combine 1 cup (125 g) flour, the yeast, sugar and salt. Add garlic powder and basil
+now if using.
+
+2. Add the olive oil and warm water and stir very well with a wooden spoon.
+
+3. Gradually add another 1 cup (125 g) flour, stirring until the dough forms a cohesive, elastic ball that
+pulls away from the bowl. It will be slightly sticky but manageable.
+
+4. Generously oil a separate large bowl and brush oil up the sides.
+
+5. With lightly floured hands, shape the dough into a ball, place it in the oiled bowl and roll it around
+until coated. Cover tightly with plastic wrap and set somewhere warm.
+
+6. Let rise 30 minutes or until doubled. If baking right away, preheat the oven to 425°F (215°C) now.
+
+7. Gently deflate the dough, move it to a lightly floured surface and knead briefly (3 to 5 times) until
+smooth.
+
+8. Shape into a 12 inch circle by hand or with a rolling pin. Move to a parchment lined pizza pan and
+pinch or fold the edges into a crust.
+
+9. Brush the whole surface, crust included, with about 1 tbsp olive oil. Poke holes all over the center with
+a fork so it doesn't bubble.
+
+10. Add toppings and bake at 425°F (215°C) for 13 to 15 minutes until golden. Slice and serve.
+
+Tip: All purpose flour gives a softer crust. Bread flour gives a slightly crispier one.
+
+Tried and True Recipes 7
+
+MAINS
+# Cheese Pizza
+
+Makes: One 10 to 12" pizza
+
+
+Ingredients
+• Pizza dough (see Pizza Dough)
+• Pizza sauce, any kind
+• Olive oil or butter
+• Cheese: mozzarella and provolone preferred, sliced or shredded
+• Vegetable toppings (optional)
+– Onion
+– Pepper
+• Hot pepper flakes
+• Herbs
+– Basil
+– Oregano
+• Protein toppings, cooked first (optional)
+– Chicken
+– Hot dogs
+– Lunch meats
+
+Instructions
+1. Preheat the oven to 425°F with a heavy pan, pizza stone or skillet inside. Not required, but it cooks
+the pizza faster and better.
+
+2. Roll the dough into a circle and thicken or roll the edges into a crust if you like. If the dough keeps
+shrinking back, let it rest 10 to 15 minutes to relax the gluten, then keep rolling.
+
+3. Spread the sauce evenly over the dough.
+
+4. Add your vegetables or meats, then the cheese on top.
+
+5. Sprinkle red pepper flakes on top if desired.
+
+6. Brush the crust with butter or olive oil and drizzle a little olive oil over the pizza.
+
+7. Bake on the hot pan for 13 to 15 minutes, until the crust is browned and crispy and the cheese is
+melted, bubbling and browned.
+
+8. Cool a few minutes, then slice and serve hot.
+
+Tried and True Recipes 8
+
+MAINS
+# Spaghetti and Chicken Meatballs
+
+Meatballs: 40 to 60 min
+Sauce: 2 hrs
+Pasta: 10+ min
+Serves: 4 or more
+
+
+Ingredients
+Meatballs
+• 1 lb ground chicken
+• 1/2 to 1 tsp garlic
+• 1/2 tsp dried marjoram
+• 1/2 tsp dried thyme
+• 1/2 tsp dried basil
+• 1/2 tsp dried oregano
+• 1/3 cup bread crumbs or panko
+– Half regular, half Italian seasoned
+• 1 egg, beaten
+• 1 tsp salt
+• 3/4 tsp ground black pepper
+• 1/4 cup grated parmesan
+• Olive oil for frying
+
+Tomato Sauce
+• 5 lb tomatoes, fresh or frozen
+• 3 tbsp olive oil
+• 2 medium onions, chopped
+• 4 cloves garlic, minced
+• 1 tsp each dried basil, oregano, thyme and marjoram
+• 2 tsp salt
+• 1 tsp ground black pepper
+• 1 tsp or more sugar (optional)
+
+Pasta and Serving
+• Spaghetti
+• Salt and olive oil
+• Grated parmesan for topping
+
+Instructions
+Meatballs
+1. Combine the chicken with all the other meatball ingredients (except the oil) and mix thoroughly by
+hand.
+
+2. With wet hands, form into balls of your preferred size and set on parchment paper.
+
+Tried and True Recipes 9
+
+3. Heat olive oil in a large, wide pan over medium heat.
+
+4. Cook the meatballs until the bottoms are golden brown, then turn until most or all sides are
+browned.
+
+5. Drain on a paper towel lined plate.
+
+Tomato Sauce
+6. Peel and core the tomatoes, saving the juices.
+
+7. In a pot, sauté the onions in oil until just browned. Add the garlic and cook about a minute until
+fragrant.
+
+8. Add the tomatoes and seasonings, bring to a boil, then simmer 1 to 1.5 hours.
+
+9. Blend smooth with an immersion blender.
+
+10. Taste and adjust salt, pepper and sugar. Add heat if you like.
+
+Pasta
+11. Bring a pot of water to a boil and salt it generously.
+
+12. Cook the pasta until al dente or your preferred doneness, then drain.
+
+13. Return it to the pot, toss with a little olive oil so it doesn't stick and cover until ready.
+
+Bring It Together
+14. Simmer the meatballs in the sauce, covered on low, for 45 minutes or more.
+
+15. Reheat the pasta, plate it with sauce and meatballs and top with grated parmesan.
+
+Tried and True Recipes 10
+
+MAINS
+# Sauerkraut with Sausage
+
+Serves: 4 to 6
+
+
+Ingredients
+• 2 lb sauerkraut, juice and cabbage separated
+• 1/2 to 1 lb sausage
+• 2 onions, chopped
+• 4 cloves garlic, chopped
+• 2 tbsp butter
+• 1 tbsp oil
+• 30 g mushrooms, fresh or dried, chopped
+• 1 tsp coarsely ground caraway seeds
+• 1 tbsp paprika
+• 2 bay leaves
+• 1/2 tsp peppercorns
+• 4 quarts water (or more)
+
+Instructions
+1. Rinse the sauerkraut once or twice, then squeeze it out. Save the juice separately.
+
+2. Melt the butter and oil in a large pot, cook the onions until golden, then add the garlic for about 1
+minute until fragrant.
+
+3. Add the sausage, cut into medium pieces, and sauté until lightly browned and the juices start to
+release.
+
+4. Add the caraway, paprika, bay leaves and peppercorns.
+
+5. Immediately add the sauerkraut.
+
+6. Add the water. Use less for a thicker dish, more for a soupier one.
+
+7. Add the sauerkraut juice a little at a time until it's just below the sourness you want.
+
+8. Add the chopped mushrooms.
+
+9. Simmer about 45 minutes, until the cabbage is soft. Taste for sourness and salt, adjust and serve
+hot.
+
+Tried and True Recipes 11
+
+DESSERTS
+# Perfect Pie Crust
+Enough for a bottom and top crust.
+
+Prep: 1 hr 15 min
+Makes: 2 crusts
+
+
+Ingredients
+• 2 1/2 cups all purpose flour, plus extra for rolling
+• 1 cup unsalted butter (2 sticks), very cold, cut into 1/2 inch cubes
+• 1 tsp salt
+• 1 tsp sugar
+• 6 to 8 tbsp ice water
+
+Instructions
+1. In a food processor, pulse the flour, sugar and salt to mix.
+
+2. Add the butter half at a time, pulsing until crumbly.
+
+3. Add ice water one tablespoon at a time until the dough barely comes together. It should hold its
+shape when squeezed between your fingers.
+
+4. Turn the crumbly mixture out onto a clean, dry surface and gather into a mound. Divide into two
+equal mounds.
+
+5. Knead each mound just enough to form a disk with no cracks. Don't over knead. That builds gluten
+and makes the crust tough. Small flecks of butter in the dough are good: they become flaky layers.
+
+6. Dust each disk with flour, wrap in plastic and refrigerate at least 1 hour or up to 2 days.
+
+Tried and True Recipes 12
+
+DESSERTS
+# Apple Pie
+
+Oven: 425°F, then 350°F
+Bake: 50 to 60 min
+
+
+Ingredients
+• Pastry for a 9 inch double crust pie (see Perfect Pie Crust)
+• 1/2 cup unsalted butter
+• 3 tbsp all purpose flour
+• 1/2 cup white sugar
+• 1/2 cup packed brown sugar
+• 1/4 cup water
+• 1 tsp cinnamon
+• 1/4 tsp ginger
+• 1/4 tsp nutmeg
+• 8 Granny Smith apples, peeled, cored and sliced
+• Egg white, for brushing
+
+Instructions
+1. Preheat the oven to 425°F. Grease a pie pan and lay the bottom crust in it.
+
+2. In a large, wide pot, melt the butter and stir in the flour to form a paste.
+
+3. Add the sugars, water, cinnamon, nutmeg and ginger. Heat and stir until smooth, then add the
+apples and cook until tender but not mushy. Cover to steam them faster; if there's too much liquid,
+cook uncovered to reduce it.
+
+4. Fill the pie with the apples, add the top crust in any design you like and brush with egg white for
+shine.
+
+5. Bake 14 minutes at 425°F, then lower to 350°F and bake 35 to 45 minutes more, until the top is
+golden and darkened but not burnt.
+
+6. Let rest 10 minutes, then serve with ice cream.
+
+Tried and True Recipes 13
+
+DESSERTS
+# Chocolate Lava Cake
+Molten, decadent and easy. The ultimate treat for chocolate lovers.
+
+Recipe by John Kanell
+
+Prep: 10 min
+Cook: 10 min
+Total: 20 min
+Makes: 6 cakes
+Calories: 381 each
+
+
+Ingredients
+• 1/2 cup unsalted butter
+• 6 oz bittersweet chocolate
+• 2 eggs
+• 2 egg yolks
+• 1/4 cup sugar
+• 1 pinch salt
+• 2 tbsp flour
+• Powdered sugar and berries, for garnish (optional)
+
+Instructions
+1. Preheat the oven to 450°F. Butter and flour your ramekins.
+
+2. Melt the butter and chocolate together on low heat in a double boiler or the microwave. Whisk until
+smooth.
+
+3. In a medium bowl, beat the eggs, egg yolks, sugar and salt until thick and pale. An electric mixer
+works best.
+
+4. Fold the chocolate mixture and flour into the eggs. Pour into the ramekins and bake at 450°F for 6 to
+8 minutes, longer or shorter depending on how much lava you want and your oven.
+
+5. Let cool in the ramekins for 1 minute. Cover each with an upside down dessert plate, carefully flip,
+wait 10 seconds and lift off the ramekin.
+
+6. Dust with powdered sugar, add berries if you like and serve immediately.
+
+Tried and True Recipes 14
+
+DESSERTS
+# Chocolate Chip Cookie Brownie Skillet
+
+Prep: 10 min
+Cook: 30 to 35 min
+Oven: 350°F
+Serves: 16
+
+
+Ingredients
+Brownie Batter
+• 1/3 cup butter, melted
+• 1/2 cup brown sugar
+• 1/4 cup white sugar
+• 1/3 cup unsweetened cocoa powder
+• 1 large egg
+• 1 tsp pure vanilla extract
+• 1/2 tsp salt
+• 1/4 cup all purpose flour
+
+Cookie Dough
+• 1/4 cup butter, softened
+• 1/4 cup light brown sugar
+• 1/4 cup granulated sugar
+• 1 large egg
+• 1 tsp pure vanilla extract
+• 2/3 cup all purpose flour
+• 1/8 tsp baking soda
+• Pinch of salt
+• 1/3 cup dark or semi sweet chocolate chips
+
+Instructions
+Prep
+1. Heat the oven to 350°F (175°C). Lightly grease a 9 inch cast iron skillet or round pan with spray,
+butter or oil.
+
+Brownie Batter
+2. In a medium bowl, whisk the melted butter and sugars until the sugar dissolves. Whisk in the cocoa
+until smooth.
+
+3. Beat in the egg and vanilla (about 1 minute). Fold in the flour and salt until smooth and thick. Set
+aside.
+
+Cookie Dough
+4. In another bowl, beat the butter and sugars until light and fluffy. Beat in the egg and vanilla until
+smooth.
+
+5. Fold in the flour, baking soda and salt until a dough forms. Fold in half the chocolate chips.
+
+Tried and True Recipes 15
+
+Assemble and Bake
+6. Spread the brownie batter evenly in the skillet. Scoop the cookie dough on top and sprinkle with the
+remaining chips.
+
+7. Bake 30 to 35 minutes, until the cookie is golden and the edges are set and pulling away from the
+pan. Don't overbake or it'll be dry instead of fudgy.
+
+8. Cool in the pan about 10 minutes and serve warm.
+
+Tip: Natural granulated sweetener can replace the sugars to cut calories.
+
+Tried and True Recipes 16
+
+DESSERTS
+# Chocolate Chip Cookies
+
+Chill: 2 hrs to overnight
+Oven: 325°F
+Bake: 12 to 13 min
+Makes: 16 large cookies
+
+
+Ingredients
+• 2 1/4 cups (280 g) all purpose flour, spooned and leveled
+• 1 tsp baking soda
+• 1 1/2 tsp cornstarch
+• 1/2 tsp salt
+• 3/4 cup (170 g) unsalted butter, melted and slightly cooled
+• 3/4 cup (150 g) packed light or dark brown sugar
+• 1/2 cup (100 g) granulated sugar
+• 1 large egg + 1 egg yolk, room temperature
+• 2 tsp pure vanilla extract
+• 1 1/4 cups (225 g) semi sweet chocolate chips or chunks
+
+Instructions
+1. Whisk the flour, baking soda, cornstarch and salt together in a large bowl. Set aside.
+
+2. In a medium bowl, whisk the melted butter, brown sugar and granulated sugar until no lumps
+remain. Whisk in the egg, then the yolk, then the vanilla.
+
+3. Pour the wet ingredients into the dry and mix with a large spoon or spatula. The dough will be very
+soft but thick.
+
+4. Fold in the chocolate. It may not stick well because of the melted butter; do your best.
+
+5. Chilling is mandatory. Cover and refrigerate 2 to 3 hours or up to 3 to 4 days. Overnight gives the
+least spreading.
+
+6. Let the dough soften at room temperature for 10 minutes.
+
+7. Preheat the oven to 325°F (163°C). Line two large baking sheets with parchment or silicone mats.
+
+8. Roll into balls of about 3 tbsp each. The dough will be crumbly but your hands will warm it together.
+Shape them taller than wide so the cookies bake up thick.
+
+9. Place 8 balls per sheet. Press a few extra chips on top for looks if you want.
+
+10. Bake 12 to 13 minutes. They'll look very soft and underbaked; they keep baking on the sheet.
+
+11. Cool on the sheet 10 minutes, then move to a wire rack to cool completely.
+
+Tip: Covered at room temperature, cookies stay fresh up to 1 week.
+
+Tried and True Recipes 17
+
+DESSERTS
+# Crème Brûlée
+Per single serving. Multiply for as many ramekins as you need.
+
+Oven: 250°F
+Bake: 45 min
+Serves: 1
+
+
+Ingredients
+• 1 egg yolk
+• 1 tbsp sugar
+• 1/2 tsp vanilla
+• Heavy cream to bring the total to 1/2 cup
+• Extra sugar and a little honey, for the topping
+
+Instructions
+1. Preheat the oven to 250°F.
+
+2. Mix the egg yolk and sugar with a fork until well combined.
+
+3. Add the vanilla, then the cream, and mix gently. Don't let it get frothy.
+
+4. Pour into a ramekin of about 5 oz.
+
+5. Bake about 45 minutes, until it jiggles like Jell-O when lightly tapped.
+
+6. Chill completely in the fridge.
+
+7. In a small pot, cook 1 to 2 tsp sugar per serving with a drop of honey and water until bubbly and
+browned to your liking.
+
+8. Pour over the custard and tilt the ramekin to spread the topping evenly.
+
+9. Let it set, then serve at room temperature or cold.
+
+Tried and True Recipes 18
+

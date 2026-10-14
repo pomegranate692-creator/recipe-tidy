@@ -58,6 +58,14 @@
     ['tgl', 'Tagalog'], ['chi_sim', 'Chinese'], ['jpn', 'Japanese'], ['kor', 'Korean']];
   const langName = code => (LANGS.find(l => l[0] === code) || [code, code])[1];
 
+  // Small headings inside the steps ("Make the Dough", "Bake"). They don't take a step number.
+  document.head.insertAdjacentHTML('beforeend', `<style>
+    .steps ol li.step-sec { counter-increment: none; padding: 1rem 0 .15rem; font-size: .85rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); cursor: default; }
+    .steps ol li.step-sec::before { display: none; }
+    .cook-sec { display: inline-block; margin: 0 0 .6rem; padding: .2rem .8rem; border-radius: 999px; background: var(--sage-soft); font-weight: 700; font-size: .9rem; }
+  </style>`);
+  const sectionsAt = (r, i) => (r.stepSections || []).filter(x => x.at === i);
+
   // "1 hr 5 min", "45 mins", "1 hour" → minutes
   function minutes(s) {
     if (!s) return null;
@@ -617,7 +625,8 @@
       </section>
       <section class="steps">
         <h2>Instructions</h2>
-        <ol>${r.steps.map(s => `<li class="${chk.has(s) ? 'flag' : ''}" ${opts.checkable ? 'tabindex="0" role="button"' : ''}>${esc(s)}${chk.has(s) ? ` <em class="chk">${I('alert')} Please check</em>` : ''}</li>`).join('') || '<p class="missing">No steps found.</p>'}</ol>
+        <ol>${r.steps.map((s, i) => sectionsAt(r, i).map(x => `<li class="step-sec">${esc(x.name)}</li>`).join('') +
+          `<li class="${chk.has(s) ? 'flag' : ''}" ${opts.checkable ? 'tabindex="0" role="button"' : ''}>${esc(s)}${chk.has(s) ? ` <em class="chk">${I('alert')} Please check</em>` : ''}</li>`).join('') || '<p class="missing">No steps found.</p>'}</ol>
         ${r.notes.length ? `<div class="notes"><h3>Notes</h3><ul>${r.notes.map(n => `<li>${esc(n)}</li>`).join('')}</ul></div>` : ''}
       </section>
     </div>`;
@@ -659,6 +668,7 @@
           ${metaRow(r)}
         </div>
       </div>
+      ${r.description ? `<p class="desc">${esc(r.description)}</p>` : ''}
       ${it.sources && it.sources.length ? `<button class="btn ghost full" id="viewSrc">${I('eye')} Compare with the original photo</button>` : ''}
       ${recipeBody(r, { flags })}
       <div class="sticky-actions">
@@ -904,14 +914,16 @@
       d.notes = $('#fNotes').value.split('\n').map(s => s.trim()).filter(Boolean);
     };
     const redraw = () => { sync(); renderEdit(arg); hydrate(app); };
+    // Step headings ("Make the Dough") stay put only while the steps keep their places
+    const dropSections = () => { d.stepSections = []; };
     $('#sMinus').onclick = () => { sync(); d.servings = Math.max(1, (d.servings || 2) - 1); $('#sVal').textContent = d.servings; };
     $('#sPlus').onclick = () => { sync(); d.servings = (d.servings || 0) + 1; $('#sVal').textContent = d.servings; };
     $('#addIng').onclick = () => { sync(); d._lines.push(''); redraw(); const ins = app.querySelectorAll('[data-ing]'); ins[ins.length - 1].focus(); };
     $('#addStep').onclick = () => { sync(); d.steps.push(''); redraw(); const ts = app.querySelectorAll('[data-step]'); ts[ts.length - 1].focus(); };
     app.querySelectorAll('[data-del-ing]').forEach(b => b.onclick = () => { sync(); d._lines.splice(+b.dataset.delIng, 1); redraw(); });
-    app.querySelectorAll('[data-del-step]').forEach(b => b.onclick = () => { sync(); d.steps.splice(+b.dataset.delStep, 1); redraw(); });
-    app.querySelectorAll('[data-up]').forEach(b => b.onclick = () => { sync(); const i = +b.dataset.up; [d.steps[i - 1], d.steps[i]] = [d.steps[i], d.steps[i - 1]]; redraw(); });
-    app.querySelectorAll('[data-down]').forEach(b => b.onclick = () => { sync(); const i = +b.dataset.down; [d.steps[i + 1], d.steps[i]] = [d.steps[i], d.steps[i + 1]]; redraw(); });
+    app.querySelectorAll('[data-del-step]').forEach(b => b.onclick = () => { sync(); d.steps.splice(+b.dataset.delStep, 1); dropSections(); redraw(); });
+    app.querySelectorAll('[data-up]').forEach(b => b.onclick = () => { sync(); const i = +b.dataset.up; [d.steps[i - 1], d.steps[i]] = [d.steps[i], d.steps[i - 1]]; dropSections(); redraw(); });
+    app.querySelectorAll('[data-down]').forEach(b => b.onclick = () => { sync(); const i = +b.dataset.down; [d.steps[i + 1], d.steps[i]] = [d.steps[i], d.steps[i + 1]]; dropSections(); redraw(); });
     $('#edPhoto').onclick = () => { sync(); photoTarget = isPending ? arg : src.id; $('#dishPhotoInput').click(); };
     const back = () => location.replace(isPending ? '#review' + (pending.items.length > 1 ? '/' + arg.slice(1) : '') : '#r/' + src.id);
     const cancel = () => { editDraft = null; back(); };
@@ -923,10 +935,13 @@
         if (/:$/.test(l) && !P.parseIngredient(l).qty) { g = { name: l.replace(/:$/, '').trim(), items: [] }; groups.push(g); }
         else g.items.push(P.parseIngredient(l));
       });
+      const steps = d.steps.map(s => s.trim()).filter(Boolean);
       Object.assign(src, {
         title: d.title.trim() || 'Untitled recipe', category: d.category, collection: d.collection, servings: d.servings || null,
         times: { prep: d.times.prep, cook: d.times.cook, total: (d.times.prep !== src.times.prep || d.times.cook !== src.times.cook) ? '' : src.times.total },
-        difficulty: d.difficulty, groups: groups.filter(x => x.items.length), steps: d.steps.map(s => s.trim()).filter(Boolean), notes: d.notes, updated: Date.now()
+        difficulty: d.difficulty, groups: groups.filter(x => x.items.length), steps,
+        stepSections: steps.length === d.steps.length ? (d.stepSections || []).filter(x => x.at < steps.length) : [],
+        notes: d.notes, updated: Date.now()
       });
       editDraft = null;
       if (isPending) { it.checked = true; return back(); }
@@ -946,6 +961,7 @@
     const n = r.steps.length;
     const done = cookStep >= n;
     const step = r.steps[cookStep] || '';
+    const sec = (r.stepSections || []).filter(x => x.at <= cookStep).pop();
     const tm = step.match(/(\d+)(?:\s*(?:-|–|to)\s*(\d+))?\s*(hours?|hrs?|hr|minutes?|mins?|min)\b/i);
     const timerMin = tm ? (/^h/i.test(tm[3]) ? +tm[1] * 60 : +tm[1]) : 0;
     app.innerHTML = `<section class="cook">
@@ -958,6 +974,7 @@
       ${done ? `<div class="cook-done"><div class="big-icon">🍽️</div><h2>Enjoy your ${esc(r.title)}!</h2>
           <div class="stack"><button class="btn primary big" id="cookFinish">Back to the recipe</button><button class="btn big" id="cookRestart">Start again</button></div></div>`
       : `<p class="cook-title">${esc(r.title)}</p>
+        ${sec ? `<div><span class="cook-sec">${esc(sec.name)}</span></div>` : ''}
         <div class="cook-step">${esc(step)}</div>
         ${timerMin ? `<button class="btn timer-btn big" id="startTimer">${I('timer')} Start ${fmtMin(timerMin)} timer</button>` : ''}
         <div class="cook-nav">
@@ -1187,12 +1204,12 @@
     }
     const fv = e.target.closest('[data-fav-id]');
     if (fv) { const r = byId(fv.dataset.favId); r.favorite = !r.favorite; saveRecipes(); renderRecipes(); hydrate(app); return toast(r.favorite ? 'Added to favorites' : 'Removed from favorites'); }
-    const li = e.target.closest('.detail .steps ol li');
+    const li = e.target.closest('.detail .steps ol li:not(.step-sec)');
     if (li) { li.classList.toggle('done'); return; }
     const b = e.target.closest('[data-act]');
     if (b && location.hash.startsWith('#r/')) { const r = byId(location.hash.split('/')[1]); if (r) onRecipeAction(b.dataset.act, r, b); }
   });
-  app.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.detail .steps ol li')) { e.preventDefault(); e.target.classList.toggle('done'); } });
+  app.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.detail .steps ol li:not(.step-sec)')) { e.preventDefault(); e.target.classList.toggle('done'); } });
   tabbar.addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (b) go('#' + b.dataset.tab); });
 
   const pick = (sel, fn) => { $(sel).onchange = e => { const f = [...e.target.files]; e.target.value = ''; if (f.length) fn(f); }; };

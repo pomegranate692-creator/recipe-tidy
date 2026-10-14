@@ -24,64 +24,24 @@
   const isImage = f => /^image\//.test(f.type) || /^(png|jpe?g|webp|gif|heic|bmp)$/.test(ext(f));
   const isPdf = f => f.type === 'application/pdf' || ext(f) === 'pdf';
 
+  // Reads the positioned text pieces from every page; RecipeParser.layoutPdfText turns them into
+  // clean lines (columns, headings, "1. " step numbers, "Prep: 30 min" label strips).
   async function pdfText(file, onProgress) {
     await loadScript(LIBS.pdf);
     const pdfjs = window.pdfjsLib;
     pdfjs.GlobalWorkerOptions.workerSrc = LIBS.pdfWorker;
     const doc = await pdfjs.getDocument({ data: await file.arrayBuffer() }).promise;
-    // Pass 1: rebuild lines (with their font size) from positioned text pieces, column by column.
-    const allLines = []; // { text, h, gapBefore, pageStart }
+    const pages = [];
     for (let p = 1; p <= doc.numPages; p++) {
       onProgress && onProgress(`Reading page ${p} of ${doc.numPages}…`);
       const page = await doc.getPage(p);
-      const width = page.getViewport({ scale: 1 }).width;
       const tc = await page.getTextContent();
-      const items = tc.items.filter(it => it.str && it.str.trim()).map(it => ({
-        x: it.transform[4], y: it.transform[5], h: Math.abs(it.transform[3]) || 10, w: it.width || 0, s: it.str
-      }));
-      // Two-column cookbook pages: read the left column, then the right one.
-      const mid = width / 2;
-      const crossing = items.filter(it => it.x < mid - 8 && it.x + it.w > mid + 8).length;
-      const left = items.filter(it => it.x + it.w <= mid + 8), right = items.filter(it => it.x >= mid - 8);
-      const twoCol = items.length > 20 && crossing < items.length * 0.08 && left.length > items.length * 0.2 && right.length > items.length * 0.2;
-      // Each piece goes to the column it starts in (a long title may poke past the middle).
-      const columns = twoCol ? [items.filter(it => it.x < mid - 8), items.filter(it => it.x >= mid - 8)] : [items];
-      let first = true;
-      for (const col of columns) {
-        const rows = [];
-        for (const it of col) {
-          let row = rows.find(r => Math.abs(r.y - it.y) < Math.max(r.h, it.h) * 0.5);
-          if (!row) { row = { y: it.y, h: it.h, parts: [] }; rows.push(row); }
-          row.h = Math.max(row.h, it.h);
-          row.parts.push(it);
-        }
-        rows.sort((a, b) => b.y - a.y);
-        let prevY = null, prevH = 10;
-        for (const r of rows) {
-          r.parts.sort((a, b) => a.x - b.x);
-          let line = '', end = null;
-          for (const pt of r.parts) {
-            if (end != null && pt.x - end > 1.5 && !/\s$/.test(line) && !/^\s/.test(pt.s)) line += ' ';
-            line += pt.s; end = pt.x + pt.w;
-          }
-          const gap = prevY != null && prevY - r.y > Math.max(prevH, r.h) * 1.9;
-          allLines.push({ text: line.trim(), h: r.h, gapBefore: gap, pageStart: first });
-          first = false; prevY = r.y; prevH = r.h;
-        }
-        allLines.push({ text: '', h: 0 }); // column / page break
-      }
+      pages.push({
+        width: page.getViewport({ scale: 1 }).width,
+        items: tc.items.map(it => ({ x: it.transform[4], y: it.transform[5], h: Math.abs(it.transform[3]) || 10, w: it.width || 0, s: it.str || '' }))
+      });
     }
-    // Pass 2: lines in a clearly bigger font than the body text are headings (recipe titles).
-    const sizes = allLines.filter(l => l.text).map(l => Math.round(l.h * 2) / 2).sort((a, b) => a - b);
-    const body = sizes.length ? sizes[Math.floor(sizes.length / 2)] : 10;
-    const out = [];
-    for (const l of allLines) {
-      if (!l.text) { out.push(''); continue; }
-      if (l.gapBefore) out.push('');
-      const heading = l.h >= body * 1.25 && l.text.length <= 70 && !/[.,;]$/.test(l.text) && /\p{L}/u.test(l.text);
-      out.push(heading ? '# ' + l.text : l.text);
-    }
-    const text = out.join('\n');
+    const text = window.RecipeParser.layoutPdfText(pages);
     return { text, scanned: text.replace(/\s/g, '').length < 40 * doc.numPages };
   }
 
@@ -289,7 +249,11 @@ Rules: keep the cook's original quantities and units; each ingredient item start
     // Pages of one recipe: merge everything into the first recipe found.
     if (found.length > 1) {
       const base = found[0];
-      found.slice(1).forEach(r => { base.groups.push(...r.groups); base.steps.push(...r.steps); base.notes.push(...r.notes); });
+      found.slice(1).forEach(r => {
+        const off = base.steps.length;
+        base.groups.push(...r.groups); base.steps.push(...r.steps); base.notes.push(...r.notes);
+        (r.stepSections || []).forEach(s => base.stepSections.push({ at: s.at + off, name: s.name }));
+      });
       return [base];
     }
     return found;
