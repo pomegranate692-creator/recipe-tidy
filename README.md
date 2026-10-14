@@ -1,24 +1,24 @@
-# Recipe Tidy 🍳
+# Recipe Snap
+
+Scan. Save. Cook.
 
 Turn a pile of messy recipes into one clean, searchable cookbook.
 
-Drop in PDFs, Word docs, text files, photos of cookbook pages or recipe cards, or saved web pages. Recipe Tidy pulls out the title, ingredients, steps, servings and times, sorts each recipe into a category, and keeps everything in a library in your browser.
+Drop in PDFs, Word docs, text files, photos of cookbook pages or recipe cards, or saved web pages. Recipe Snap pulls out the title, ingredients, steps, servings and times, sorts each recipe into a category, and keeps everything in a library in your browser.
 
 ## Features
 
-- **Reads almost anything:** PDF (including scanned), .docx, .txt, .md, .rtf, saved web pages (.html), and photos (JPG, PNG, WebP)
-- **Any language:** photo text recognition for 20+ languages, including Slovak, Czech, Polish, German, Spanish and more. Understands European units like dkg, dl, PL and ČL
-- **Built-in translation to English:** runs on your device, free, no account. Uses Chrome's built-in translator when available, otherwise an open translation model (Opus-MT or NLLB-200) that downloads once and then works offline. European units convert too (dkg → g, dl → ml, PL → tbsp, ČL → tsp). Flip between English and the original anytime
-- **Auto categories:** Breakfast, Soups & stews, Salads, Main dishes, Sides, Breads & baking, Desserts, Sauces & dips, Snacks, Drinks, Preserves
-- **Collections:** file a batch under a name like "Mom's cookbook" and filter by it
+- **Scan. Save. Cook.** Point the camera at any recipe (live camera with a scan frame, flash and multi page support), or pick photos, a PDF, a Word file or pasted text
+- **Review before saving:** every scan opens a Review & Edit screen. Lines that may have been misread are marked "Please check", and you can compare with the original photo
 - **Whole cookbooks:** a PDF or Word file with dozens of recipes is split into separate recipes, each sorted into its own category. Skips intro pages, contents pages, page numbers and running headers, and reads two column layouts
-- **Multi page recipes:** pick several photos and choose "One recipe" to combine them
-- **Made for everyone:** one big Add button, plain step by step questions, large readable text (Atkinson Hyperlegible) and a Text size setting
-- **Serving scaler:** quantities update as you change servings (fractions stay readable)
-- **Print and export:** clean printable recipe cards and Markdown export
-- **Edit anything** the parser got wrong
-- **Backup and restore** your whole library as a JSON file
-- **Private:** everything stays in your browser. Nothing is uploaded unless you turn on AI reading
+- **Any language:** photo reading for 20+ languages (Slovak, Czech, Polish, German, Spanish and more) and on device translation to English
+- **Library:** search by name or ingredient, category filters, favorites, collections (cookbooks), recently added and scan history
+- **Recipe page:** dish photo, serving scaler, Ingredients and Instructions tabs, tap to check off, print, save a copy
+- **Cooking mode:** one big step at a time, built in timers, screen stays on
+- **Grocery list:** add a recipe's ingredients in one tap, sorted by store aisle, check off as you shop
+- **Edit anything:** title, category, servings, times, difficulty, ingredients, steps, notes, photo
+- **Made for everyone:** large readable text (Atkinson Hyperlegible), a Text size setting, plain language, forest green and cream design, works offline once installed
+- **Private:** everything stays on the device (localStorage + IndexedDB for photos). Backup and restore as a file
 
 ## Translation
 
@@ -45,7 +45,7 @@ It's a static site with no build step.
 
 ## Put it on your phone's home screen
 
-Recipe Tidy is an installable web app that works offline once it's open.
+Recipe Snap is an installable web app that works offline once it's open.
 
 - **iPhone (Safari):** open the site, tap Share, then **Add to Home Screen**
 - **Android (Chrome):** open the site, tap ⋮, then **Install app** or **Add to Home screen**
@@ -63,6 +63,8 @@ When you upload changes, bump `VERSION` in `sw.js` (v1 → v2) so installed copi
 ```
 index.html        page
 css/styles.css    styles (light, dark, mobile, print)
+js/icons.js       line icons
+js/store.js       on device storage (recipes, photos)
 js/parser.js      rule-based recipe parser, scaler, categorizer
 js/translate.js   on-device translation (Chrome Translator, Transformers.js worker)
 js/translate-worker.js  model runner

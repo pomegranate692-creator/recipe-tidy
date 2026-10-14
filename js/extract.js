@@ -1,4 +1,4 @@
-/* Recipe Tidy — getting text (or recipes) out of files. Libraries load only when needed. */
+/* Recipe Snap — getting text (or recipes) out of files. Libraries load only when needed. */
 (function () {
   'use strict';
   const LIBS = {

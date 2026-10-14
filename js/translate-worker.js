@@ -1,4 +1,4 @@
-/* Recipe Tidy — on-device translation worker (Transformers.js). Runs off the main thread so the page stays responsive. */
+/* Recipe Snap — on-device translation worker (Transformers.js). Runs off the main thread so the page stays responsive. */
 import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1/dist/transformers.min.js';
 
 env.allowLocalModels = false; // always fetch models from the Hugging Face hub (cached by the browser after the first time)

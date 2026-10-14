@@ -1,4 +1,4 @@
-/* Recipe Tidy — translate recipes into English on the device.
+/* Recipe Snap — translate recipes into English on the device.
  * 1) Chrome's built-in Translator (fast, small, private) when the browser has it
  * 2) Otherwise an open translation model that runs in the browser (downloads once, then works offline)
  */

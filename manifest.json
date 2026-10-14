@@ -1,17 +1,32 @@
 {
-  "name": "Recipe Tidy",
-  "short_name": "Recipes",
-  "description": "Messy recipes in, clean recipe cards out.",
+  "name": "Recipe Snap",
+  "short_name": "Recipe Snap",
+  "description": "Scan. Save. Cook. Keep all your recipes in one place.",
   "id": "./",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#f7f3ec",
-  "theme_color": "#c2552d",
+  "background_color": "#142a20",
+  "theme_color": "#1d3a2c",
   "icons": [
-    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ]
 }

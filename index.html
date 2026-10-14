@@ -3,15 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Recipe Tidy</title>
-  <meta name="description" content="Take a photo of any recipe and get a clean, easy to read recipe card. Keeps all your recipes in one place.">
+  <title>Recipe Snap</title>
+  <meta name="description" content="Recipe Snap: scan any recipe and keep all your recipes in one organized, searchable place. Scan. Save. Cook.">
   <link rel="icon" type="image/png" href="icons/favicon-64.png">
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-  <meta name="theme-color" content="#c2552d">
+  <meta name="theme-color" content="#1d3a2c">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="Recipes">
+  <meta name="apple-mobile-web-app-title" content="Recipe Snap">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,26 +19,29 @@
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-  <header class="topbar">
-    <button class="back" id="backBtn" hidden><span aria-hidden="true">‹</span> <span id="backLabel">My recipes</span></button>
-    <a class="brand" href="#" id="brand"><img class="logo" src="icons/icon-192.png" alt=""> My Recipes</a>
-    <button class="settings-btn" id="settingsBtn"><span aria-hidden="true">⚙️</span> Settings</button>
-  </header>
-
   <main id="app" class="app"></main>
 
-  <!-- Hidden pickers the big buttons open -->
+  <nav class="tabbar" id="tabbar" aria-label="Main">
+    <button data-tab="home"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg><span>Home</span></button>
+    <button data-tab="recipes"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg><span>Recipes</span></button>
+    <button data-tab="scan" class="tab-scan" aria-label="Scan a recipe"><span class="scan-bubble"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><circle cx="12" cy="12" r="3.2"/></svg></span><span>Scan</span></button>
+    <button data-tab="groceries"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3h6a1 1 0 0 1 1 1v2H8V4a1 1 0 0 1 1-1z"/><path d="M8 5H6a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><path d="M9 12h6M9 16h6"/></svg><span>Groceries</span></button>
+    <button data-tab="profile"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>Profile</span></button>
+  </nav>
+
+  <!-- Hidden pickers that the buttons open -->
   <input type="file" id="cameraInput" accept="image/*" capture="environment" hidden>
-  <input type="file" id="fileInput" accept=".txt,.md,.pdf,.docx,.html,.htm,.json,.rtf,image/*" multiple hidden>
+  <input type="file" id="photoInput" accept="image/*" multiple hidden>
+  <input type="file" id="fileInput" accept=".pdf,.docx,.txt,.md,.html,.htm,.json,.rtf,image/*" multiple hidden>
+  <input type="file" id="dishPhotoInput" accept="image/*" hidden>
   <input type="file" id="restoreInput" accept=".json,application/json" hidden>
 
-  <!-- Full screen messages: working / done / problem / questions -->
-  <div class="overlay" id="overlay" hidden>
-    <div class="overlay-card" id="overlayCard" role="dialog" aria-modal="true" aria-live="polite"></div>
-  </div>
-
+  <div class="overlay" id="overlay" hidden><div class="overlay-card" id="overlayCard" role="dialog" aria-modal="true" aria-live="polite"></div></div>
+  <div class="timer-pill" id="timerPill" role="timer" hidden></div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+  <script src="js/icons.js"></script>
+  <script src="js/store.js"></script>
   <script src="js/parser.js"></script>
   <script src="js/extract.js"></script>
   <script src="js/translate.js"></script>

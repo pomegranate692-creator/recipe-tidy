@@ -1,11 +1,11 @@
-/* Recipe Tidy service worker: makes the app installable and usable offline.
+/* Recipe Snap service worker: makes the app installable and usable offline.
  * Bump VERSION whenever you upload new files so phones pick up the update. */
-const VERSION = 'v3';
-const SHELL = `recipe-tidy-shell-${VERSION}`;
-const LIBS = 'recipe-tidy-libs';
+const VERSION = 'v4';
+const SHELL = `recipe-snap-shell-${VERSION}`;
+const LIBS = 'recipe-snap-libs';
 const FILES = [
   './', 'index.html', 'manifest.json', 'css/styles.css',
-  'js/parser.js', 'js/extract.js', 'js/translate.js', 'js/translate-worker.js', 'js/app.js',
+  'js/icons.js', 'js/store.js', 'js/parser.js', 'js/extract.js', 'js/translate.js', 'js/translate-worker.js', 'js/app.js',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png', 'icons/favicon-64.png'
 ];
 
@@ -15,7 +15,7 @@ self.addEventListener('install', e => {
 
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys()
-    .then(keys => Promise.all(keys.filter(k => k.startsWith('recipe-tidy-shell-') && k !== SHELL).map(k => caches.delete(k))))
+    .then(keys => Promise.all(keys.filter(k => (k.startsWith('recipe-snap-shell-') && k !== SHELL) || k.startsWith('recipe-tidy-')).map(k => caches.delete(k))))
     .then(() => self.clients.claim()));
 });
 

@@ -1,4 +1,4 @@
-/* Recipe Tidy — rule-based recipe parser.
+/* Recipe Snap — rule-based recipe parser.
  * Turns messy recipe text (or schema.org JSON-LD) into structured recipes.
  * Works in the browser (window.RecipeParser) and in Node (module.exports).
  */
@@ -278,10 +278,10 @@
   const CATEGORIES = ['Breakfast', 'Soups & stews', 'Salads', 'Main dishes', 'Sides', 'Breads & baking', 'Desserts', 'Sauces & dips', 'Snacks & appetizers', 'Drinks', 'Preserves', 'Other'];
   // Keywords are matched without accents, so OCR'd "polievka" and "polievka" both hit.
   const CAT_WORDS = {
-    'Breakfast': 'breakfast pancake waffle omelet omelette granola oatmeal porridge french toast frittata scrambled smoothie bowl hash brown ranajky ovsena kasa mic frühstück desayuno',
+    'Breakfast': 'breakfast pancake waffle omelet omelette granola oatmeal porridge french toast frittata scrambled smoothie hash brown ranajky ovsena kasa mic frühstück desayuno',
     'Soups & stews': 'soup stew chowder chili bisque broth gumbo ramen pho minestrone polievka polievky vyvar gulas gulasova kapustnica fazulovica bors strukovinova cesnackova paradajkova kulajda demikat polevka suppe sopa soupe zuppa zupa',
     'Salads': 'salad slaw salat salata ensalada salade insalata salatka',
-    'Main dishes': 'chicken beef pork steak lamb turkey salmon fish shrimp tacos burger lasagna pasta spaghetti curry casserole meatball meatloaf roast enchilada stir fry risotto pizza kuraci kuracie kura bravcove bravcova hovadzie hovadzia rezen rezne sviečkova sviekova paprikas kapor ryba halusky pirohy segedin plnena kacica morka maso masom fasirky rizoto',
+    'Main dishes': 'teriyaki chicken beef pork steak lamb turkey salmon fish shrimp tacos burger lasagna pasta spaghetti curry casserole meatball meatloaf roast enchilada stir fry risotto pizza kuraci kuracie kura bravcove bravcova hovadzie hovadzia rezen rezne sviečkova sviekova paprikas kapor ryba halusky pirohy segedin plnena kacica morka maso masom fasirky rizoto',
     'Sides': 'side rice potatoes mashed fries roasted vegetables coleslaw dumpling dumplings knedle knedliky ryza zemiaky zemiakova kasa hranolky priloha zemiakovy',
     'Breads & baking': 'bread rolls buns focaccia baguette biscuits scones bagel pretzel loaf dough banana bread cornbread chlieb chleba rozky pagace vianocka bagety cesto kysnute kysnuteho calta kolac na chlieb',
     'Desserts': 'cake cookie cookies brownie brownies pie tart muffin cupcake cheesecake pudding dessert frosting icing fudge candy ice cream crumble cobbler tiramisu torta tortu kolac kolace kolaciky buchty strudla zavin pernik pernicky medovnik oblatky linecke sisky palacinky babovka laskonky zakusok mucnik krem rezy salka vanilkove rohliky orechovnik makovnik tvarohovnik bublanina kuchen pastel gateau dolce ciasto',
