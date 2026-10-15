@@ -26,3 +26,19 @@ assert.equal(count(by('Apple Pie')), 11);
 const t = P.parseText('Toast\nIngredients\n2 slices bread\n1 tbsp butter\nInstructions\n1 Toast the bread until golden brown.\n2 Spread the butter on while it is hot.');
 assert.equal(t.length, 1); assert.equal(count(t[0]), 2); assert.equal(t[0].steps.length, 2);
 console.log('PDF BOOK OK');
+
+// The same cookbook printed from recipe websites: two columns, plain-text titles, glued labels
+// ("Prep Time10 minutes"), checkbox bullets on their own lines, a recipe in three parts.
+const web = P.parseText(fs.readFileSync(__dirname + '/fixtures/tried-and-true-web.txt', 'utf8'));
+assert.deepEqual(web.map(r => r.title), ['Chocolate Lava Cake', 'Perfect Pie Crust', 'Apple Pie', 'Homemade Cinnamon Rolls', 'Chocolate Chip Cookie Brownie Skillet',
+  'Pizza Dough', 'Cheese Pizza', 'Chocolate Chip Cookies', 'Spinach Puffs', 'Spaghetti and Chicken Meatballs', 'Belgium Waffles', 'Sauerkraut', 'Crème brûlée']);
+const wb = t => web.find(r => r.title === t);
+assert.equal(count(wb('Chocolate Lava Cake')), 7); assert.equal(wb('Chocolate Lava Cake').times.prep, '10 minutes');
+assert.equal(count(wb('Perfect Pie Crust')), 5);
+assert.equal(count(wb('Homemade Cinnamon Rolls')), 15); assert.equal(wb('Homemade Cinnamon Rolls').steps.length, 17);
+assert.deepEqual(wb('Chocolate Chip Cookie Brownie Skillet').stepSections.map(s => s.name), ['For The Brownie Batter', 'For The Cookie Dough', 'Assemble']);
+assert.equal(count(wb('Chocolate Chip Cookies')), 10);
+assert.equal(count(wb('Spaghetti and Chicken Meatballs')), 25);
+assert.equal(wb('Belgium Waffles').steps.length, 6);
+assert.ok(wb('Crème brûlée').groups[0].items.some(i => /for topping$/.test(i.raw)));
+console.log('WEB PDF OK');

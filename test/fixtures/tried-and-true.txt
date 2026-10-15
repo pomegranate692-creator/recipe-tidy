@@ -1,14 +1,4 @@
-Warning: Cannot polyfill `DOMMatrix`, rendering may be broken: "Error: Cannot find module 'canvas'
-Require stack:
-- /home/claude/rs/node_modules/pdfjs-dist/legacy/build/pdf.js
-- /home/claude/rs/test/pdfrun.js".
-Warning: Cannot polyfill `Path2D`, rendering may be broken: "Error: Cannot find module 'canvas'
-Require stack:
-- /home/claude/rs/node_modules/pdfjs-dist/legacy/build/pdf.js
-- /home/claude/rs/test/pdfrun.js".
-Warning: fetchStandardFontData: failed to fetch file "LiberationSans-Regular.ttf" with "UnknownErrorException: The standard font "baseUrl" parameter must be specified, ensure that the "standardFontDataUrl" API parameter is provided.".
-# Tried and True
-# Recipes
+# Tried and True Recipes
 # 13 favorites, from breakfast to dessert
 
 # Contents
