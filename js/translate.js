@@ -92,25 +92,28 @@
     if (!needs(lang) || !list.length) return list;
     const P = window.RecipeParser;
     const strs = new Set();
+    const sk = lang === 'slk' || lang === 'ces';
+    // Expand shorthand ("hl.", "prášk.", "2 hod.") so the translator sees real words.
+    const prep = s => sk ? P.skExpand(s) : s;
     const add = s => { if (s && /\p{L}{2}/u.test(s)) strs.add(s); };
     for (const r of list) {
       if (r.translated) continue;
       add(r.title); add(r.description);
-      r.groups.forEach(g => { add(g.name); g.items.forEach(i => add(i.name)); });
+      r.groups.forEach(g => { add(g.name); g.items.forEach(i => { if (!(sk && P.skGlossary(i.name))) add(i.name); }); });
       r.steps.forEach(add); r.notes.forEach(add);
     }
     const texts = [...strs];
-    if (!texts.length) return list;
-    const { out, engine } = await translateStrings(texts, lang, settings, onProgress);
+    const { out, engine } = texts.length ? await translateStrings(texts.map(prep), lang, settings, onProgress) : { out: [], engine: 'Kitchen dictionary' };
     const map = new Map(texts.map((t, i) => [t, (out[i] || t).trim()]));
     const tr = s => (s && map.get(s)) || s;
+    const trName = s => (sk && P.skGlossary(s)) || tr(s);
     for (const r of list) {
       if (r.translated) continue;
       r.original = JSON.parse(JSON.stringify({ title: r.title, description: r.description, groups: r.groups, steps: r.steps, notes: r.notes }));
       r.originalTitle = r.title;
       r.title = tr(r.title);
       r.description = tr(r.description);
-      r.groups.forEach(g => { g.name = tr(g.name); g.items.forEach(i => { i.name = tr(i.name); P.toEnglishUnits(i); i.raw = [P.formatIngredient(i, 1).amount, i.name].filter(Boolean).join(' '); }); });
+      r.groups.forEach(g => { g.name = tr(g.name); g.items.forEach(i => { i.name = trName(i.name); P.toEnglishUnits(i); i.raw = [P.formatIngredient(i, 1).amount, i.name].filter(Boolean).join(' '); }); });
       r.steps = r.steps.map(tr); r.notes = r.notes.map(tr);
       r.translated = true; r.translatedBy = engine; r.lang = lang;
       if (!r.category || r.category === 'Other') r.category = P.categorize(r);

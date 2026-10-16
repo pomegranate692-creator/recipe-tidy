@@ -54,7 +54,7 @@
     ['pint', 'pint', 'pints', ['pints', 'pint', 'pts', 'pt']],
     ['quart', 'quart', 'quarts', ['quarts', 'quart', 'qts', 'qt']],
     ['gallon', 'gallon', 'gallons', ['gallons', 'gallon', 'gal']],
-    ['stick', 'stick', 'sticks', ['sticks', 'stick']],
+    ['stick', 'stick', 'sticks', ['sticks', 'stick', 'st']],
     ['can', 'can', 'cans', ['cans', 'can']],
     ['jar', 'jar', 'jars', ['jars', 'jar']],
     ['package', 'package', 'packages', ['packages', 'package', 'pkgs', 'pkg', 'packets', 'packet']],
@@ -68,7 +68,7 @@
     ['bunch', 'bunch', 'bunches', ['bunches', 'bunch']],
     ['sprig', 'sprig', 'sprigs', ['sprigs', 'sprig']],
     ['head', 'head', 'heads', ['heads', 'head']],
-    ['handful', 'handful', 'handfuls', ['handfuls', 'handful']],
+    ['handful', 'handful', 'handfuls', ['handfuls', 'handful', 'hrsti', 'hrste', 'hrsť', 'hrst']],
     ['drop', 'drop', 'drops', ['drops', 'drop']],
     ['bottle', 'bottle', 'bottles', ['bottles', 'bottle']],
     ['envelope', 'envelope', 'envelopes', ['envelopes', 'envelope']],
@@ -76,7 +76,8 @@
     ['strip', 'strip', 'strips', ['strips', 'strip']],
     ['cube', 'cube', 'cubes', ['cubes', 'cube']],
     // Slovak / Czech / Central European units (shown as written)
-    ['dkg', 'dkg', 'dkg', ['dkg', 'dag', 'dek']],
+    // handwritten "20 dg" in Slovak notebooks means dekagrams
+    ['dkg', 'dkg', 'dkg', ['dkg', 'dag', 'dek', 'dg']],
     ['dl', 'dl', 'dl', ['dl']],
     ['cl', 'cl', 'cl', ['cl']],
     ['pl', 'PL', 'PL', ['polievkové lyžice', 'polievkovej lyžice', 'polievková lyžica', 'polievkových lyžíc', 'lžíce', 'lžíci', 'PL', 'pl', 'pl.']],
@@ -744,9 +745,89 @@
     r.tags = (obj.tags || []).map(String).slice(0, 8);
     r.category = obj.category || '';
     if (obj.originalTitle && obj.originalTitle !== r.title) r.originalTitle = String(obj.originalTitle);
+    const o = obj.original;
+    if (o && typeof o === 'object' && (o.ingredientGroups || o.steps)) {
+      r.original = {
+        title: o.title || obj.originalTitle || '', description: o.description || '',
+        groups: (o.ingredientGroups || []).map(g => ({ name: g.name || '', items: (g.items || []).map(parseIngredient) })).filter(g => g.items.length),
+        steps: (o.steps || []).map(String), notes: (o.notes || []).map(String)
+      };
+      if (!r.originalTitle && o.title && o.title !== r.title) r.originalTitle = String(o.title);
+    }
     return finalize(r);
   }
 
+
+
+  // ---------- Is this OCR text real words or scanner noise? ----------
+  // Tesseract only reads print. On cursive it returns junk like "A.rr o 7 7 i S HR A fe Sa = 4 a5 & §".
+  // Returns { ok, score, reason } so the app can stop before turning noise into a "recipe".
+  function ocrQuality(text, confidence) {
+    const toks = String(text || '').split(/\s+/).filter(Boolean);
+    if (toks.length < 4) return { ok: false, score: 0, reason: 'almost no text' };
+    let good = 0, letters = 0, letterLen = 0;
+    for (const t0 of toks) {
+      const t = t0.replace(/^[("'“„•\-–]+|[)"'”.,:;!?]+$/g, '');
+      if (!t) continue;
+      if (/^\d+(?:[.,/]\d+)?(?:[-–]\d+)?$|^[½¼¾⅓⅔]$/.test(t) || matchUnit(t + ' x')) { good++; continue; }
+      if (/^\p{L}+$/u.test(t)) {
+        letters++; letterLen += t.length;
+        if (t.length >= 2 && /[aeiouyáäéíóôúýěůrlŕĺ]/i.test(t) && !/^(\p{Lu}\p{Ll}?){2,}$/u.test(t) || /^(a|i|v|k|s|z|o|u)$/.test(t)) good++;
+      }
+    }
+    const score = good / toks.length;
+    const avgWord = letters ? letterLen / letters : 0;
+    let reason = '';
+    if (confidence != null && confidence < 45) reason = 'low reader confidence';
+    else if (score < 0.6) reason = 'mostly unreadable';
+    else if (avgWord < 2.8 || toks.filter(t => t.length === 1).length > toks.length * 0.3) reason = 'broken words';
+    return { ok: !reason, score: Math.round(score * 100) / 100, reason };
+  }
+
+  // ---------- Slovak / Czech kitchen words → English (before machine translation) ----------
+  // Small generic translators get grandma's shorthand wrong ("hl. múka", "HERA", "lekvár").
+  // Whole phrases first, then word by word; null means "let the translator try".
+  const SK_ABBR = { 'hl': 'hladka', 'prask': 'praskovy', 'mlet': 'mlete', 'kr': 'krystalovy', 'vanil': 'vanilkovy', 'pol': 'polohruba', 'cerst': 'cerstve', 'strk': 'struhana' };
+  const SK_PHRASES = {
+    'hladka muka special': 'all-purpose flour (fine, "špeciál")', 'hladka muka': 'all-purpose flour', 'polohruba muka': 'semi-coarse flour', 'hruba muka': 'coarse flour',
+    'praskovy cukor': 'powdered sugar', 'krystalovy cukor': 'granulated sugar', 'vanilkovy cukor': 'vanilla sugar',
+    'soda bikarbona': 'baking soda', 'soda bicarbona': 'baking soda', 'jedla soda': 'baking soda', 'prasok do peciva': 'baking powder',
+    'kysla smotana': 'sour cream', 'smotana na slahanie': 'whipping cream', 'mlete orechy': 'ground walnuts', 'mlete orechov': 'ground walnuts',
+    'mlete maku': 'ground poppy seeds', 'struhana citronova kora': 'grated lemon zest', 'citronova kora': 'lemon zest', 'hera': 'margarine (Hera)', 'perník korenie': 'gingerbread spice', 'pernikove korenie': 'gingerbread spice'
+  };
+  const SK_WORDS = {
+    muka: 'flour', muky: 'flour', muku: 'flour', hladka: 'fine', hladkej: 'fine', cukor: 'sugar', cukru: 'sugar', praskovy: 'powdered', praskoveho: 'powdered',
+    med: 'honey', medu: 'honey', maslo: 'butter', masla: 'butter', margarin: 'margarine', margarinu: 'margarine', hera: 'margarine (Hera)', heru: 'margarine (Hera)',
+    lekvar: 'plum butter (lekvár)', lekvaru: 'plum butter (lekvár)', dzem: 'jam', dzemu: 'jam', hrebicek: 'clove', hrebicky: 'cloves', hrebicka: 'cloves', hrebickov: 'cloves',
+    skorica: 'cinnamon', skorice: 'cinnamon', mlete: 'ground', mletych: 'ground', mletej: 'ground', orechy: 'walnuts', orechov: 'walnuts', mak: 'poppy seeds', maku: 'poppy seeds',
+    vajce: 'egg', vajcia: 'eggs', vajec: 'eggs', vajicko: 'egg', vajicka: 'eggs', zltok: 'egg yolk', zltky: 'egg yolks', zltkov: 'egg yolks', bielok: 'egg white', bielky: 'egg whites',
+    mlieko: 'milk', mlieka: 'milk', smotana: 'cream', smotany: 'cream', tvaroh: 'farmer cheese (tvaroh)', tvarohu: 'farmer cheese (tvaroh)', sol: 'salt', soli: 'salt',
+    olej: 'oil', oleja: 'oil', drozdie: 'yeast', drozdia: 'yeast', kakao: 'cocoa', citron: 'lemon', citrona: 'lemon', rum: 'rum', rumu: 'rum', voda: 'water', vody: 'water',
+    hrozienka: 'raisins', hrozienok: 'raisins', struhanka: 'breadcrumbs', struhanky: 'breadcrumbs', zemiaky: 'potatoes', zemiakov: 'potatoes', cibula: 'onion', cibule: 'onions',
+    cesnak: 'garlic', cesnaku: 'garlic', paprika: 'paprika', papriky: 'paprika', ocot: 'vinegar', octu: 'vinegar', kapusta: 'cabbage', kapusty: 'cabbage', klobasa: 'sausage', klobasy: 'sausage',
+    huby: 'mushrooms', hub: 'mushrooms', susene: 'dried', susenych: 'dried', udena: 'smoked', udenej: 'smoked', kysla: 'sour', kyslej: 'sour', cerstve: 'fresh', struhana: 'grated',
+    kuracie: 'chicken', bravcove: 'pork', hovadzie: 'beef', maso: 'meat', masa: 'meat', soda: 'soda', vanilkovy: 'vanilla', polohruba: 'semi-coarse', krystalovy: 'granulated'
+  };
+  function skGlossary(name) {
+    if (!name) return null;
+    const parts = String(name).split(/\s*,\s*/);
+    const out = [];
+    for (const part of parts) {
+      const toks = fold(part).replace(/[()]/g, ' ').split(/[\s.]+/).filter(Boolean).map(t => SK_ABBR[t] || t);
+      if (!toks.length) return null;
+      const phrase = toks.join(' ');
+      if (SK_PHRASES[phrase]) { out.push(SK_PHRASES[phrase]); continue; }
+      const words = toks.map(t => SK_WORDS[t]);
+      if (words.some(w => !w)) return null;
+      out.push(words.join(' '));
+    }
+    return out.join(', ');
+  }
+  // Expand handwritten shorthand so a machine translator has real words to work with.
+  function skExpand(s) {
+    return String(s || '').replace(/\b(hl|prášk|prask|mlet|kr|vanil|pol)\.\s*/gi, (m, a) => ({ hl: 'hladká ', prášk: 'práškový ', prask: 'práškový ', mlet: 'mletých ', kr: 'kryštálový ', vanil: 'vanilkový ', pol: 'polohrubá ' })[a.toLowerCase()] || m)
+      .replace(/\bhod\.(?=\s|$)/gi, 'hodiny').replace(/\bmin\.(?=\s|$)/gi, 'minút');
+  }
 
   // ---------- Converting European units when a recipe is translated ----------
   const TO_EN = {
@@ -904,7 +985,7 @@
     return out.join('\n');
   }
 
-  const api = { layoutPdfText, CATEGORIES, categorize, toEnglishUnits, parseText, parseBlock, parseIngredient, formatIngredient, formatQty, parseNum, parseJsonLd, fromAI, toEditableText, toMarkdown };
+  const api = { ocrQuality, skGlossary, skExpand, layoutPdfText, CATEGORIES, categorize, toEnglishUnits, parseText, parseBlock, parseIngredient, formatIngredient, formatQty, parseNum, parseJsonLd, fromAI, toEditableText, toMarkdown };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.RecipeParser = api;
 })(typeof window !== 'undefined' ? window : this);

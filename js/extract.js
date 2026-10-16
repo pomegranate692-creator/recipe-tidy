@@ -69,7 +69,20 @@
     const res = await window.Tesseract.recognize(fileOrCanvas, langs, {
       logger: m => { if (m.status === 'recognizing text' && onProgress) onProgress(`Reading image… ${Math.round(m.progress * 100)}%`); }
     });
+    lastConfidence = res.data.confidence;
     return res.data.text;
+  }
+  let lastConfidence = null;
+
+  // Cursive and faint handwriting come back from Tesseract as noise. Stop there instead of
+  // "translating" noise into a fake recipe, and tell the person what will work.
+  function guardOcr(text) {
+    const q = window.RecipeParser.ocrQuality(text, lastConfidence);
+    if (q.ok) return text;
+    const e = new Error('This looks handwritten (or too blurry). The offline reader only reads printed text. ' +
+      'To read handwriting, open Profile, Settings, "Smart reading with AI" and turn it on. Or tap "Type it in instead".');
+    e.handwriting = true;
+    throw e;
   }
 
   async function pdfOcr(file, onProgress, lang) {
@@ -116,7 +129,13 @@
   // Shrink big phone photos before sending them to Claude (API limit ~5 MB per image).
   async function imageForAI(file) {
     try {
-      const bmp = await createImageBitmap(file);
+      let bmp;
+      try { bmp = await createImageBitmap(file); }
+      catch (e) {
+        const url = URL.createObjectURL(file);
+        try { bmp = await new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = url; }); }
+        finally { setTimeout(() => URL.revokeObjectURL(url), 1000); }
+      }
       const scale = Math.min(1, 1800 / Math.max(bmp.width, bmp.height));
       const c = document.createElement('canvas');
       c.width = Math.round(bmp.width * scale); c.height = Math.round(bmp.height * scale);
@@ -152,6 +171,14 @@ Return ONLY JSON, no prose, in exactly this shape:
 Also add "category": exactly one of: ${window.RecipeParser.CATEGORIES.join(', ')}.
 Rules: keep the cook's original quantities and units; each ingredient item starts with its amount and unit when there is one; fix obvious OCR typos; servings is a number or null; skip anything that is not a recipe.`;
 
+  // Reading guide for photos: handwritten Central European recipe books (Slovak/Czech cursive).
+  const HANDWRITING_GUIDE = `
+The photos may be handwritten, often old Slovak or Czech cursive in a notebook or on a printed recipe card. Read carefully:
+1. First read every line exactly as written, in the original language, with all diacritics (č š ž ľ ĺ ť ď ň á é í ó ú ý ô ä ŕ). Ignore printed card labels ("from the kitchen of", "recipe for", "ingredients"), page numbers and doodles. A name in a corner (e.g. "Hela Ch.") is who the recipe is from: put "From <name>" in the description.
+2. Use cooking sense to settle unclear letters. Ingredient lines are "amount unit ingredient". In cursive, v/r/n/u, a/o, l/e and š/ž/ľ are easy to mix up; pick the real Slovak cooking word that fits.
+3. Common shorthand: PL = tablespoon, ČL or KL = teaspoon, dkg or dg = dekagram (10 g), dl = 100 ml, hrsť = handful, štipka = pinch, hrnček = cup, bal. = packet, hl. múka = all-purpose (fine) flour, polohrubá múka = semi-coarse flour, prášk. cukor = powdered sugar, kr. cukor = granulated sugar, mlet. = ground, HERA = a margarine brand, lekvár = thick plum butter, hrebíček = clove, škorica = cinnamon, sóda bikarbóna = baking soda, prášok do pečiva = baking powder, žĺtok = egg yolk, bielok = egg white, vajce/vajíčko = egg, tvaroh = farmer cheese, hod. = hours. American cards may mix English units in (c = cup, st. = stick, tbsp, tsp).
+4. Never invent anything. If an amount, ingredient or the method is missing (for example a cake with no flour, or no steps), leave it out and add a note such as "The card has no method written down". If a word stays unclear, give your best reading and add a note "Hard to read: <word>".`;
+
   async function aiExtract(settings, payload, onProgress) {
     onProgress && onProgress('Claude is reading your recipe…');
     const content = [];
@@ -159,9 +186,12 @@ Rules: keep the cook's original quantities and units; each ingredient item start
     else if (payload.pdf) content.push({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: payload.pdf } });
     else content.push({ type: 'text', text: '<material>\n' + payload.text.slice(0, 150000) + '\n</material>' });
     let prompt = AI_PROMPT;
+    if (payload.images) prompt += HANDWRITING_GUIDE;
     if (payload.images && payload.images.length > 1) prompt += '\nThe images are consecutive pages; a recipe may continue from one page onto the next.';
+    const foreign = settings.ocrLang && settings.ocrLang !== 'eng';
     prompt += settings.translate
-      ? '\nTranslate everything into English (convert nothing else: keep the units as written, e.g. dkg, dl, PL). Put the original-language title in "originalTitle".'
+      ? '\nTranslate everything into English, naturally, as an English cookbook would say it (keep the units as written, e.g. dkg, dl, PL). Put the original-language title in "originalTitle"' +
+        (foreign ? ', and add "original": {"title","ingredientGroups","steps","notes"} holding the exact original-language reading (same shape as above).' : '.')
       : '\nKeep the recipe in its original language. Do not translate.';
     content.push({ type: 'text', text: prompt });
     const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -188,7 +218,7 @@ Rules: keep the cook's original quantities and units; each ingredient item start
 
     if (isImage(file)) {
       if (useAI) return aiExtract(settings, { images: [await imageForAI(file)] }, onProgress);
-      return P.parseText(await ocr(file, onProgress, settings.ocrLang));
+      return P.parseText(guardOcr(await ocr(file, onProgress, settings.ocrLang)));
     }
 
     if (isPdf(file)) {
@@ -243,7 +273,7 @@ Rules: keep the cook's original quantities and units; each ingredient item start
     let text = '';
     for (let i = 0; i < files.length; i++) {
       onProgress && onProgress(`Photo ${i + 1} of ${files.length}…`);
-      text += (isImage(files[i]) ? await ocr(files[i], null, settings.ocrLang) : await files[i].text()) + '\n';
+      text += (isImage(files[i]) ? guardOcr(await ocr(files[i], null, settings.ocrLang)) : await files[i].text()) + '\n';
     }
     const found = P.parseText(text);
     // Pages of one recipe: merge everything into the first recipe found.
