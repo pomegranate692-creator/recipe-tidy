@@ -360,7 +360,6 @@
   </svg>`;
   function renderHome() {
     const recent = recipes.slice().sort((a, b) => (b.created || 0) - (a.created || 0)).slice(0, 6);
-    const favs = recipes.filter(r => r.favorite).slice(0, 6);
     const quick = [['Breakfast', 'Breakfast'], ['Main dishes', 'Dinner'], ['Desserts', 'Desserts'], ['Snacks & appetizers', 'Snacks']];
     app.innerHTML = `<section class="home">
       <header class="home-top"><span class="brand">${I('leaf')}<b>RecipeSnap</b></span><button class="icon-btn outline" data-go="#profile" aria-label="Profile">${I('user')}</button></header>
@@ -378,9 +377,7 @@
 
       ${recipes.length ? `
       <div class="sec-head"><h2>Recently Added</h2><button class="see-all" data-go="#recipes">View all</button></div>
-      <div class="hscroll">${recent.map(miniCard).join('')}</div>
-      ${favs.length ? `<div class="sec-head"><h2>Favorites</h2><button class="see-all" data-fav="1">View all</button></div>
-      <div class="hscroll">${favs.map(miniCard).join('')}</div>` : ''}`
+      <div class="hscroll">${recent.map(miniCard).join('')}</div>`
       : `<div class="empty-card">
           <div class="big-icon">📖</div>
           <h2>Your cookbook is empty</h2>
@@ -433,9 +430,6 @@
         <button class="chip${favOnly ? ' on' : ''}" data-chip="fav">${I(favOnly ? 'heart-on' : 'heart')} Favorites</button>
         ${P.CATEGORIES.filter(c => counts[c]).map(c => `<button class="chip${c === catFilter ? ' on' : ''}" data-chip="cat" data-v="${esc(c)}">${esc(SHORT[c] || c)}</button>`).join('')}
       </div>
-      ${cols.length ? `<div class="chips small-chips">${I('cookbook')}
-        <button class="chip${!colFilter ? ' on' : ''}" data-chip="col" data-v="">All cookbooks</button>
-        ${cols.map(c => `<button class="chip${c === colFilter ? ' on' : ''}" data-chip="col" data-v="${esc(c)}">${esc(c)}</button>`).join('')}</div>` : ''}
       <p class="count-line">${plural(items.length, 'recipe')}${catFilter ? ` in ${esc(catFilter)}` : ''}${favOnly ? ' in favorites' : ''}</p>
       ${items.length ? (asList ? `<ul class="rlist">${items.map(listRow).join('')}</ul>` : `<div class="grid2">${items.map(gridCard).join('')}</div>`)
       : recipes.length ? `<div class="empty-card"><p>No recipes match.</p><button class="btn big" id="clearF">Show all recipes</button></div>`
@@ -451,9 +445,9 @@
     const recents = (settings.recentSearches || []).slice(0, 6);
     const popular = recipes.filter(r => r.favorite).concat(recipes.slice().sort((a, b) => (b.created || 0) - (a.created || 0))).filter((r, i, a) => a.indexOf(r) === i).slice(0, 4);
     app.innerHTML = `<section class="searchpage">
-      <header class="bar sbar"><button class="icon-btn" data-back aria-label="Back">${I('left')}</button>
-        <label class="search">${I('search')}<input id="sIn" type="search" placeholder="Search recipes, ingredients..." autocomplete="off" enterkeyhint="search"></label>
-        <button class="text-btn" data-back>Cancel</button></header>
+      <header class="bar"><button class="icon-btn" data-back aria-label="Back">${I('left')}</button><h1>Search</h1><span class="bar-gap"></span></header>
+      <div class="sbar"><label class="search">${I('search')}<input id="sIn" type="search" placeholder="Search recipes, ingredients..." autocomplete="off" enterkeyhint="search"></label>
+        <button class="text-btn" data-back>Cancel</button></div>
       <h2 class="s-h">Recent Searches</h2>
       ${recents.length ? `<ul class="recents">${recents.map(x => `<li><button data-recent="${esc(x)}">${I('clock')}<span>${esc(x)}</span></button></li>`).join('')}</ul>` : `<p class="muted small">Your searches will show up here.</p>`}
       ${popular.length ? `<h2 class="s-h">Popular Recipes</h2><ul class="rlist">${popular.map(listRow).join('')}</ul>` : ''}
@@ -482,7 +476,7 @@
     const cols = collections();
     app.innerHTML = `<section class="colls">
       <header class="bar"><button class="icon-btn" data-back aria-label="Back">${I('left')}</button><h1>Collections</h1><button class="icon-btn" id="newCol" aria-label="New collection">${I('plus')}</button></header>
-      <p class="hint">Collections are like cookbooks. They keep recipes together, like “Mom's recipes” or “Holiday baking”.</p>
+      ${cols.length ? '' : `<p class="hint">Collections are like cookbooks. They keep recipes together, like “Mom's recipes” or “Holiday baking”.</p>`}
       ${cols.length ? `<ul class="rlist">${cols.map(c => { const rs = recipes.filter(r => r.collection === c); return `<li class="rcard">
         <button class="rcard-main" data-col-go="${esc(c)}">${cover(rs.find(r => r.hasPhoto || r.imageUrl) || rs[0], 'thumb')}
           <span class="rcard-text"><b>${esc(c)}</b><small>${plural(rs.length, 'recipe')}</small></span></button></li>`; }).join('')}</ul>`
@@ -794,10 +788,9 @@
     const serv = r.servings ? Math.round(r.servings * factor * 100) / 100 : null;
     const hasImg = live.hasPhoto || live.imageUrl;
     app.innerHTML = `<article class="detail" id="card">
+      <header class="bar detail-bar no-print"><button class="icon-btn" data-act="back" aria-label="Back">${I('left')}</button><h1>Recipe Detail</h1><button class="icon-btn fav-top${live.favorite ? ' on' : ''}" data-act="fav" aria-label="Favorite">${I(live.favorite ? 'heart-on' : 'heart')}</button></header>
       <div class="hero${hasImg ? '' : ' no-img'}">
         ${cover(live, 'hero-img')}
-        <button class="icon-btn float left no-print" data-act="back" aria-label="Back">${I('left')}</button>
-        <button class="icon-btn float right no-print${live.favorite ? ' on' : ''}" data-act="fav" aria-label="Favorite">${I(live.favorite ? 'heart-on' : 'heart')}</button>
         ${!hasImg ? `<button class="add-photo no-print" data-act="photo">${I('camera')} Add a photo of the dish</button>` : ''}
       </div>
       <div class="detail-body">
@@ -1043,6 +1036,7 @@
     const pb = $('#pauseBtn'); if (pb) pb.onclick = () => { toggleTimerPause(); renderCook(id); };
     $('#nextStep').onclick = () => { cookStep++; renderCook(id); };
     const st = $('#startTimer'); if (st) st.onclick = () => { if (!timer) startTimer(timerMin, r.title); else toggleTimerPause(); renderCook(id); };
+    hydrate(app);
   }
 
   // A kitchen timer that keeps running while you move around the app

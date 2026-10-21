@@ -1,6 +1,6 @@
 /* Recipe Snap service worker: makes the app installable and usable offline.
  * Bump VERSION whenever you upload new files so phones pick up the update. */
-const VERSION = 'v8';
+const VERSION = 'v10';
 const SHELL = `recipe-snap-shell-${VERSION}`;
 const LIBS = 'recipe-snap-libs';
 const FILES = [
