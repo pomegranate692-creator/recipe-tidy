@@ -47,8 +47,8 @@
     heart: '<path d="M12 21s-7.5-4.6-9.5-9.3C1 8 3.4 4.5 7 4.5c2 0 3.6 1.1 5 3 1.4-1.9 3-3 5-3 3.6 0 6 3.5 4.5 7.2C19.5 16.4 12 21 12 21z"/>'
   };
   window.Icon = function (name, cls) {
-    const filled = name === 'bookmark-on' || name === 'play';
-    const key = name === 'bookmark-on' ? 'bookmark' : name;
+    const filled = name === 'bookmark-on' || name === 'heart-on' || name === 'play';
+    const key = name === 'bookmark-on' ? 'bookmark' : name === 'heart-on' ? 'heart' : name;
     return `<svg class="ic${cls ? ' ' + cls : ''}" viewBox="0 0 24 24" aria-hidden="true" fill="${filled ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${P[key] || ''}</svg>`;
   };
 })();

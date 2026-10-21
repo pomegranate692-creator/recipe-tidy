@@ -289,7 +289,7 @@
     tabbar.hidden = !TABS.includes(name);
     tabbar.querySelectorAll('[data-tab]').forEach(b => b.classList.toggle('on', b.dataset.tab === name));
     window.scrollTo(0, 0);
-    const screens = { categories: renderCategories, collections: renderCollections, history: renderHistory, welcome: renderWelcome, home: renderHome, recipes: renderRecipes, scan: renderScan, review: renderReview, r: renderRecipe, edit: renderEdit, cook: renderCook, groceries: renderGroceries, profile: renderProfile, settings: renderSettings, help: renderHelp };
+    const screens = { categories: renderCategories, collections: renderCollections, history: renderHistory, welcome: renderWelcome, home: renderHome, recipes: renderRecipes, scan: renderScan, review: renderReview, r: renderRecipe, edit: renderEdit, cook: renderCook, groceries: renderGroceries, search: renderSearch, profile: renderProfile, settings: renderSettings, help: renderHelp };
     (screens[name] || renderHome)(arg);
     hydrate(app);
     if (successQueue) { const s = successQueue; successQueue = null; savedScreen(s); }
@@ -339,36 +339,46 @@
     const part = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
     return settings.userName ? `${part}, ${esc(settings.userName.split(' ')[0])}` : part;
   }
+  function metaSmall(r) {
+    const t = totalTime(r);
+    const bits = [];
+    if (t) bits.push(`${I('clock')} ${fmtMin(t)}`);
+    if (r.servings) bits.push(plural(r.servings, 'serving'));
+    return bits.length ? bits.join(' • ') : esc(r.category || 'Other');
+  }
   function miniCard(r) {
     const t = totalTime(r);
     return `<button class="mini" data-go="#r/${r.id}">${cover(r, 'mini-cover')}<b>${esc(r.title)}</b><small>${t ? I('clock') + ' ' + fmtMin(t) : esc(r.category || 'Other')}</small></button>`;
   }
+  const PLATE = `<svg class="hero-plate" viewBox="0 0 200 200" aria-hidden="true">
+    <circle cx="100" cy="100" r="96" fill="#f3efe6"/><circle cx="100" cy="100" r="82" fill="#fffdf8" stroke="#e6dfcf" stroke-width="2"/>
+    <circle cx="100" cy="100" r="62" fill="#ecc884"/>
+    <g fill="none" stroke="#f6dca0" stroke-width="7" stroke-linecap="round"><path d="M52 92c14-18 28 12 44-4s30 14 46-2"/><path d="M56 110c16-14 28 10 44-2s32 10 44-4"/><path d="M64 78c12-10 24 8 38-2s26 8 36 0"/><path d="M62 124c14-8 26 6 40-2s24 6 34-2"/></g>
+    <g fill="#4f7a3a"><circle cx="78" cy="88" r="4"/><circle cx="118" cy="104" r="4"/><circle cx="130" cy="82" r="3.5"/><circle cx="96" cy="118" r="3"/></g>
+    <g fill="#fffaf0"><circle cx="90" cy="80" r="3"/><circle cx="112" cy="92" r="2.6"/><circle cx="104" cy="126" r="2.4"/></g>
+    <g fill="#6b8f4e"><path d="M170 30c-14 2-24 12-24 24 14-2 24-10 24-24z"/><path d="M186 52c-10 0-18 8-18 18 10-2 18-8 18-18z"/></g>
+  </svg>`;
   function renderHome() {
     const recent = recipes.slice().sort((a, b) => (b.created || 0) - (a.created || 0)).slice(0, 6);
     const favs = recipes.filter(r => r.favorite).slice(0, 6);
-    const left = groceries.filter(g => !g.done).length;
-    const quick = ['Breakfast', 'Main dishes', 'Soups & stews', 'Desserts', 'Snacks & appetizers', 'Drinks'];
+    const quick = [['Breakfast', 'Breakfast'], ['Main dishes', 'Dinner'], ['Desserts', 'Desserts'], ['Snacks & appetizers', 'Snacks']];
     app.innerHTML = `<section class="home">
-      <header class="home-head">
-        <div><h1 class="hello">${hello()}</h1><p class="sub">What would you like to cook today?</p></div>
-        <button class="round-btn ghosty" data-go="#recipes" aria-label="Search recipes">${I('search')}</button>
-      </header>
-
-      <button class="scan-card" data-go="#scan">
-        <span class="scan-ic">${I('camera')}</span>
-        <span class="scan-text"><b>Scan Recipe</b><small>Take a photo or upload a file</small></span>
-        <span class="scan-go">${I('right')}</span>
-      </button>
-
-      <div class="quick">
-        <button data-go="#recipes">${I('book')}<b>My Recipes</b><small>${recipes.length} saved</small></button>
-        <button data-go="#groceries">${I('list')}<b>Grocery List</b><small>${plural(left, 'item')}</small></button>
-        <button data-go="#collections">${I('cookbook')}<b>Collections</b><small>${plural(collections().length, 'cookbook')}</small></button>
+      <header class="home-top"><span class="brand">${I('leaf')}<b>RecipeSnap</b></span><button class="icon-btn outline" data-go="#profile" aria-label="Profile">${I('user')}</button></header>
+      <div class="home-hero">
+        <div class="hero-text"><h1 class="hello">${hello().replace(', ', ',<br>')}</h1><p class="sub">What would you like to cook today?</p></div>
+        ${PLATE}
+      </div>
+      <button class="search fake" data-go="#search">${I('search')}<span>Search recipes, ingredients, or cuisines...</span></button>
+      <div class="tiles">
+        <button data-go="#scan">${I('camera')}<span>Scan<br>Recipe</span></button>
+        <button id="addManual">${I('edit')}<span>Add<br>Manually</span></button>
+        <button data-go="#collections">${I('cookbook')}<span>Collections</span></button>
+        <button data-go="#groceries">${I('list')}<span>Groceries</span></button>
       </div>
 
       ${recipes.length ? `
       <div class="sec-head"><h2>Recently Added</h2><button class="see-all" data-go="#recipes">View all</button></div>
-      <div class="grid2">${recent.slice(0, 4).map(gridCard).join('')}</div>
+      <div class="hscroll">${recent.map(miniCard).join('')}</div>
       ${favs.length ? `<div class="sec-head"><h2>Favorites</h2><button class="see-all" data-fav="1">View all</button></div>
       <div class="hscroll">${favs.map(miniCard).join('')}</div>` : ''}`
       : `<div class="empty-card">
@@ -379,15 +389,19 @@
           <button class="btn big ghost" id="sampleBtn">Show me examples</button>
         </div>`}
 
-      <div class="sec-head"><h2>Quick Categories</h2><button class="see-all" data-go="#categories">See all</button></div>
-      <div class="qcats">${quick.map(c => `<button data-catgo="${esc(c)}"><span>${emo(c)}</span><small>${esc(SHORT[c] || c)}</small></button>`).join('')}</div>
+      <div class="sec-head"><h2>Popular Categories</h2><button class="see-all" data-go="#categories">See all</button></div>
+      <div class="pcats">${quick.map(([c, l]) => `<button data-catgo="${esc(c)}"><span class="circ">${emo(c)}</span><small>${esc(l)}</small></button>`).join('')}</div>
     </section>`;
     const sb = $('#sampleBtn'); if (sb) sb.onclick = addExamples;
+    $('#addManual').onclick = openTypeSheet;
   }
   function gridCard(r) {
-    const t = totalTime(r);
-    return `<div class="gcard"><button class="gcard-main" data-go="#r/${r.id}">${cover(r, 'gcover')}<b>${esc(r.title)}</b><small>${t ? I('clock') + ' ' + fmtMin(t) : esc(r.category || 'Other')}</small></button>
-      <button class="fav-btn float${r.favorite ? ' on' : ''}" data-fav-id="${r.id}" aria-label="${r.favorite ? 'Remove from favorites' : 'Add to favorites'}">${I(r.favorite ? 'bookmark-on' : 'bookmark')}</button></div>`;
+    return `<div class="gcard"><button class="gcard-main" data-go="#r/${r.id}">${cover(r, 'gcover')}<b>${esc(r.title)}</b><small>${metaSmall(r)}</small></button>
+      <button class="fav-btn float${r.favorite ? ' on' : ''}" data-fav-id="${r.id}" aria-label="${r.favorite ? 'Remove from favorites' : 'Add to favorites'}">${I(r.favorite ? 'heart-on' : 'heart')}</button></div>`;
+  }
+  function listRow(r) {
+    return `<li class="rcard"><button class="rcard-main" data-go="#r/${r.id}">${cover(r, 'thumb')}<span class="rcard-text"><b>${esc(r.title)}</b><small>${metaSmall(r)}</small></span></button>
+      <button class="fav-btn${r.favorite ? ' on' : ''}" data-fav-id="${r.id}" aria-label="${r.favorite ? 'Remove from favorites' : 'Add to favorites'}">${I(r.favorite ? 'heart-on' : 'heart')}</button></li>`;
   }
   function addExamples() {
     const ex = P.parseText(SAMPLE).map(r => Object.assign(r, { id: uid(), created: Date.now(), collection: 'Examples', favorite: false }));
@@ -408,25 +422,50 @@
       r.title.toLowerCase().includes(q) || (r.originalTitle || '').toLowerCase().includes(q) || (r.category || '').toLowerCase().includes(q) ||
       (r.collection || '').toLowerCase().includes(q) || (r.tags || []).some(t => t.toLowerCase().includes(q)) ||
       r.groups.some(g => g.items.some(i => i.name.toLowerCase().includes(q)))));
+    const sub = !!(catFilter || colFilter || q);
+    const asList = sub || favOnly;
     app.innerHTML = `<section class="library">
-      <header class="page-head"><h1>My Recipes</h1><button class="round-btn ghosty${favOnly ? ' on' : ''}" data-chip="fav" aria-label="Show favorites">${I(favOnly ? 'bookmark-on' : 'bookmark')}</button></header>
-      <label class="search">${I('search')}<input type="search" id="search" placeholder="Search recipes or ingredients" value="${esc(query)}" autocomplete="off"></label>
+      ${sub ? `<header class="page-head sub-head"><button class="icon-btn" id="clearF2" aria-label="Back">${I('left')}</button><h1>${esc(colFilter || SHORT[catFilter] || catFilter || query.trim())}</h1><span class="bar-gap"></span></header>`
+      : `<header class="page-head"><h1>My Recipes</h1><button class="icon-btn outline" data-go="#profile" aria-label="Profile">${I('user')}</button></header>`}
+      <label class="search">${I('search')}<input type="search" id="search" placeholder="Search your recipes..." value="${esc(query)}" autocomplete="off"></label>
       <div class="chips">
         <button class="chip${!catFilter && !favOnly ? ' on' : ''}" data-chip="all">All</button>
-        <button class="chip${favOnly ? ' on' : ''}" data-chip="fav">${I(favOnly ? 'bookmark-on' : 'bookmark')} Favorites</button>
-        ${P.CATEGORIES.filter(c => counts[c]).map(c => `<button class="chip${c === catFilter ? ' on' : ''}" data-chip="cat" data-v="${esc(c)}">${esc(c)}</button>`).join('')}
+        <button class="chip${favOnly ? ' on' : ''}" data-chip="fav">${I(favOnly ? 'heart-on' : 'heart')} Favorites</button>
+        ${P.CATEGORIES.filter(c => counts[c]).map(c => `<button class="chip${c === catFilter ? ' on' : ''}" data-chip="cat" data-v="${esc(c)}">${esc(SHORT[c] || c)}</button>`).join('')}
       </div>
       ${cols.length ? `<div class="chips small-chips">${I('cookbook')}
         <button class="chip${!colFilter ? ' on' : ''}" data-chip="col" data-v="">All cookbooks</button>
         ${cols.map(c => `<button class="chip${c === colFilter ? ' on' : ''}" data-chip="col" data-v="${esc(c)}">${esc(c)}</button>`).join('')}</div>` : ''}
       <p class="count-line">${plural(items.length, 'recipe')}${catFilter ? ` in ${esc(catFilter)}` : ''}${favOnly ? ' in favorites' : ''}</p>
-      ${items.length ? `<div class="grid2">${items.map(gridCard).join('')}</div>`
+      ${items.length ? (asList ? `<ul class="rlist">${items.map(listRow).join('')}</ul>` : `<div class="grid2">${items.map(gridCard).join('')}</div>`)
       : recipes.length ? `<div class="empty-card"><p>No recipes match.</p><button class="btn big" id="clearF">Show all recipes</button></div>`
       : `<div class="empty-card"><div class="big-icon">📖</div><h2>No recipes yet</h2><p>Tap the Scan button below to add your first one.</p></div>`}
     </section>`;
     const s = $('#search');
     s.oninput = () => { query = s.value; const pos = s.selectionStart; renderRecipes(); hydrate(app); const n = $('#search'); n.focus(); n.setSelectionRange(pos, pos); };
     const c = $('#clearF'); if (c) c.onclick = () => { query = ''; catFilter = ''; favOnly = false; colFilter = ''; route(); };
+    const c2 = $('#clearF2'); if (c2) c2.onclick = () => { query = ''; catFilter = ''; favOnly = false; colFilter = ''; route(); };
+  }
+
+  function renderSearch() {
+    const recents = (settings.recentSearches || []).slice(0, 6);
+    const popular = recipes.filter(r => r.favorite).concat(recipes.slice().sort((a, b) => (b.created || 0) - (a.created || 0))).filter((r, i, a) => a.indexOf(r) === i).slice(0, 4);
+    app.innerHTML = `<section class="searchpage">
+      <header class="bar sbar"><button class="icon-btn" data-back aria-label="Back">${I('left')}</button>
+        <label class="search">${I('search')}<input id="sIn" type="search" placeholder="Search recipes, ingredients..." autocomplete="off" enterkeyhint="search"></label>
+        <button class="text-btn" data-back>Cancel</button></header>
+      <h2 class="s-h">Recent Searches</h2>
+      ${recents.length ? `<ul class="recents">${recents.map(x => `<li><button data-recent="${esc(x)}">${I('clock')}<span>${esc(x)}</span></button></li>`).join('')}</ul>` : `<p class="muted small">Your searches will show up here.</p>`}
+      ${popular.length ? `<h2 class="s-h">Popular Recipes</h2><ul class="rlist">${popular.map(listRow).join('')}</ul>` : ''}
+    </section>`;
+    const run = v => {
+      v = (v || '').trim(); if (!v) return;
+      settings.recentSearches = [v].concat((settings.recentSearches || []).filter(x => x.toLowerCase() !== v.toLowerCase())).slice(0, 8);
+      saveSettings(); query = v; catFilter = ''; favOnly = false; colFilter = ''; go('#recipes');
+    };
+    const inp = $('#sIn');
+    inp.onkeydown = e => { if (e.key === 'Enter') run(inp.value); };
+    app.querySelectorAll('[data-recent]').forEach(b => b.onclick = () => run(b.dataset.recent));
   }
 
   function renderCategories() {
@@ -446,7 +485,7 @@
       <p class="hint">Collections are like cookbooks. They keep recipes together, like “Mom's recipes” or “Holiday baking”.</p>
       ${cols.length ? `<ul class="rlist">${cols.map(c => { const rs = recipes.filter(r => r.collection === c); return `<li class="rcard">
         <button class="rcard-main" data-col-go="${esc(c)}">${cover(rs.find(r => r.hasPhoto || r.imageUrl) || rs[0], 'thumb')}
-          <span class="rcard-text"><b>${esc(c)}</b><small>${plural(rs.length, 'recipe')}</small></span>${I('right')}</button></li>`; }).join('')}</ul>`
+          <span class="rcard-text"><b>${esc(c)}</b><small>${plural(rs.length, 'recipe')}</small></span></button></li>`; }).join('')}</ul>`
       : `<div class="empty-card"><div class="big-icon">📚</div><h2>No collections yet</h2><p>When you scan a recipe, tap <b>No cookbook</b> at the top of the camera to put it in a collection. You can also open any recipe, tap <b>Edit recipe</b> and type a cookbook name.</p></div>`}
     </section>`;
     $('#newCol').onclick = () => {
@@ -476,12 +515,14 @@
     app.innerHTML = `<section class="scan">
       <header class="scan-top">
         <button class="icon-btn light" id="scanClose" aria-label="Close">${I('x')}</button>
-        <div class="scan-opts">
-          <button class="opt" id="langOpt">${I('globe')} ${esc(langName(settings.ocrLang))}${settings.ocrLang !== 'eng' && settings.translate ? ' → English' : ''}</button>
-          <button class="opt" id="bookOpt">${I('cookbook')} ${settings.collection ? esc(settings.collection) : 'No cookbook'}</button>
-        </div>
+        <span class="scan-gap"></span>
         <button class="icon-btn light" id="torch" aria-label="Flash" hidden>${I('flash')}</button>
+        ${last ? '' : `<button class="icon-btn light" id="moreBtn" aria-label="Add a file">${I('image')}</button>`}
       </header>
+      <div class="scan-opts">
+        <button class="opt" id="langOpt">${I('globe')} ${esc(langName(settings.ocrLang))}${settings.ocrLang !== 'eng' && settings.translate ? ' → English' : ''}</button>
+        <button class="opt" id="bookOpt">${I('cookbook')} ${settings.collection ? esc(settings.collection) : 'No cookbook'}</button>
+      </div>
       <div class="viewfinder">
         ${last ? `<img class="shot" src="${URL.createObjectURL(last)}" alt="Your photo">` : `<video id="video" playsinline muted autoplay></video>
         <div class="cam-msg" id="camMsg">
@@ -492,7 +533,6 @@
           <button class="btn outline-light big" id="camFallback">${I('camera')} Take a photo</button>
         </div>`}
         <div class="frame" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
-        ${!last ? `<p class="frame-hint">Fit the whole recipe inside the frame</p>` : ''}
       </div>
       ${last ? `<div class="shot-bar">
           <p>${shots.length > 1 ? `${shots.length} pages so far. ` : ''}Is the whole recipe clear and easy to read?</p>
@@ -503,12 +543,14 @@
           <button class="btn cream big" id="usePhoto">${I('check')} Use ${shots.length > 1 ? `these ${shots.length} photos` : 'this photo'}</button>
         </div>`
       : `<div class="scan-bottom">
-          <div class="modes" role="tablist">
-            <button class="mode on" role="tab" aria-selected="true">Photo</button>
-            <button class="mode" role="tab" id="galleryBtn">Gallery</button>
-            <button class="mode" role="tab" id="moreBtn">Upload</button>
+          <div class="shutter-row">
+            <button class="side-btn" id="galleryBtn">${I('image')}<span>Photo Library</span></button>
+            <button class="shutter" id="shutter" aria-label="Take photo"><span></span></button>
+            <button class="side-btn" id="camSide">${I('camera')}<span>Camera</span></button>
           </div>
-          <button class="shutter" id="shutter" aria-label="Take photo"><span></span></button>
+          <p class="tap-hint">Tap to scan</p>
+          <div class="tips-card"><b>Tips for best results:</b>
+            <ul><li>Make sure the text is well lit</li><li>Keep the image clear and not blurry</li><li>Fill the frame with the recipe</li></ul></div>
         </div>`}
     </section>`;
 
@@ -533,6 +575,7 @@
     ]).then(v => { hideOverlay(); if (v === 'file') $('#fileInput').click(); if (v === 'type') openTypeSheet(); });
     const fb = $('#camFallback'); if (fb) fb.onclick = () => $('#cameraInput').click();
     const on = $('#camOn'); if (on) on.onclick = startCamera;
+    const cs = $('#camSide'); if (cs) cs.onclick = () => (hasCam ? startCamera() : $('#cameraInput').click());
     $('#shutter').onclick = capture;
     if (hasCam && settings.cameraOk) startCamera();
   }
@@ -754,7 +797,7 @@
       <div class="hero${hasImg ? '' : ' no-img'}">
         ${cover(live, 'hero-img')}
         <button class="icon-btn float left no-print" data-act="back" aria-label="Back">${I('left')}</button>
-        <button class="icon-btn float right no-print${live.favorite ? ' on' : ''}" data-act="fav" aria-label="Favorite">${I(live.favorite ? 'bookmark-on' : 'bookmark')}</button>
+        <button class="icon-btn float right no-print${live.favorite ? ' on' : ''}" data-act="fav" aria-label="Favorite">${I(live.favorite ? 'heart-on' : 'heart')}</button>
         ${!hasImg ? `<button class="add-photo no-print" data-act="photo">${I('camera')} Add a photo of the dish</button>` : ''}
       </div>
       <div class="detail-body">
@@ -874,11 +917,11 @@
     const cols = collections();
     app.innerHTML = `<section class="edit">
       <header class="bar">
-        <button class="text-btn" id="edCancel">Cancel</button>
+        <button class="icon-btn" id="edCancel" aria-label="Back">${I('left')}</button>
         <h1>Edit Recipe</h1>
         <button class="text-btn strong" id="edSave">Save</button>
       </header>
-      <div class="ed-photo">${cover(src, 'thumb lg', it)}<button class="btn" id="edPhoto">${I('camera')} ${src.hasPhoto || (it && it.photo) ? 'Change photo' : 'Add a photo'}</button></div>
+      <div class="ed-photo">${cover(src, 'thumb lg', it)}<button class="btn" id="edPhoto">${I('camera')} ${src.hasPhoto || (it && it.photo) ? 'Change Photo' : 'Add a photo'}</button></div>
 
       <div class="form">
         <label class="field"><span>Title</span><input id="fTitle" value="${esc(d.title)}"></label>
@@ -964,23 +1007,28 @@
     const sec = (r.stepSections || []).filter(x => x.at <= cookStep).pop();
     const tm = step.match(/(\d+)(?:\s*(?:-|–|to)\s*(\d+))?\s*(hours?|hrs?|hr|minutes?|mins?|min)\b/i);
     const timerMin = tm ? (/^h/i.test(tm[3]) ? +tm[1] * 60 : +tm[1]) : 0;
+    const tl = timer ? (timer.paused ? timer.left : Math.max(0, Math.round((timer.end - Date.now()) / 1000))) : timerMin * 60;
+    const ttot = timer ? timer.total : timerMin * 60;
+    const m2 = x => String(Math.floor(x / 60)).padStart(2, '0') + ':' + String(x % 60).padStart(2, '0');
     app.innerHTML = `<section class="cook">
       <header class="bar">
-        <button class="icon-btn" id="cookClose" aria-label="Close cooking mode">${I('x')}</button>
+        <button class="icon-btn" id="cookClose" aria-label="Close cooking mode">${I('left')}</button>
         <h1>${done ? 'All done!' : `Step ${cookStep + 1} of ${n}`}</h1>
         <button class="icon-btn" id="cookIngs" aria-label="Ingredients">${I('ingredients')}</button>
       </header>
       <div class="progress"><span style="width:${n ? Math.min(100, Math.round(cookStep / n * 100)) : 0}%"></span></div>
       ${done ? `<div class="cook-done"><div class="big-icon">🍽️</div><h2>Enjoy your ${esc(r.title)}!</h2>
-          <div class="stack"><button class="btn primary big" id="cookFinish">Back to the recipe</button><button class="btn big" id="cookRestart">Start again</button></div></div>`
-      : `<p class="cook-title">${esc(r.title)}</p>
-        ${sec ? `<div><span class="cook-sec">${esc(sec.name)}</span></div>` : ''}
+          <div class="stack"><button class="btn cream big" id="cookFinish">Back to the recipe</button><button class="btn big outline-light" id="cookRestart">Start again</button></div></div>`
+      : `<div class="cook-photo">${cover(r, 'cook-img')}</div>
+        ${sec ? `<div class="cook-sec-wrap"><span class="cook-sec">${esc(sec.name)}</span></div>` : ''}
         <div class="cook-step">${esc(step)}</div>
-        ${timerMin ? `<button class="btn timer-btn big" id="startTimer">${I('timer')} Start ${fmtMin(timerMin)} timer</button>` : ''}
+        ${timerMin ? `<button class="ring-timer" id="startTimer" aria-label="${timer ? 'Timer' : 'Start ' + fmtMin(timerMin) + ' timer'}"><svg viewBox="0 0 120 120" aria-hidden="true"><circle class="ring-bg" cx="60" cy="60" r="54"/><circle class="ring-fg" id="ringFg" cx="60" cy="60" r="54" style="stroke-dashoffset:${(339.3 * (1 - tl / ttot)).toFixed(1)}"/></svg><span id="ringTime">${m2(tl)}</span></button>
+          ${timer ? '' : `<p class="ring-hint">Tap to start the timer</p>`}` : ''}
         <div class="cook-nav">
-          <button class="btn big" id="prevStep" ${cookStep ? '' : 'disabled'}>${I('left')} Back</button>
-          <button class="btn primary big" id="nextStep">${cookStep === n - 1 ? 'Finish' : 'Next'} ${I('right')}</button>
-        </div>`}
+          ${timer ? `<button class="btn big dark" id="pauseBtn">${timer.paused ? 'Resume' : 'Pause'}</button>` : `<button class="btn big dark" id="prevStep" ${cookStep ? '' : 'disabled'}>Back</button>`}
+          <button class="btn big sage" id="nextStep">${cookStep === n - 1 ? 'Finish' : 'Next'}</button>
+        </div>
+        ${timer && cookStep ? `<button class="link-light center" id="prevStep2">Previous step</button>` : ''}`}
     </section>`;
     $('#cookClose').onclick = () => { releaseWake(); location.replace('#r/' + id); };
     $('#cookIngs').onclick = () => {
@@ -989,31 +1037,52 @@
       $('#ingClose').onclick = hideOverlay;
     };
     if (done) { $('#cookFinish').onclick = () => { releaseWake(); location.replace('#r/' + id); }; $('#cookRestart').onclick = () => { cookStep = 0; renderCook(id); }; return; }
-    $('#prevStep').onclick = () => { cookStep = Math.max(0, cookStep - 1); renderCook(id); };
+    const prev = () => { cookStep = Math.max(0, cookStep - 1); renderCook(id); };
+    const pv = $('#prevStep'); if (pv) pv.onclick = prev;
+    const pv2 = $('#prevStep2'); if (pv2) pv2.onclick = prev;
+    const pb = $('#pauseBtn'); if (pb) pb.onclick = () => { toggleTimerPause(); renderCook(id); };
     $('#nextStep').onclick = () => { cookStep++; renderCook(id); };
-    const st = $('#startTimer'); if (st) st.onclick = () => startTimer(timerMin, r.title);
+    const st = $('#startTimer'); if (st) st.onclick = () => { if (!timer) startTimer(timerMin, r.title); else toggleTimerPause(); renderCook(id); };
   }
 
   // A kitchen timer that keeps running while you move around the app
   let timer = null;
-  function startTimer(mins, label) {
-    clearInterval(timer && timer.int);
-    const end = Date.now() + mins * 60000;
+  const mmss = x => `${Math.floor(x / 60)}:${String(x % 60).padStart(2, '0')}`;
+  function paintTimer() {
+    if (!timer) return 0;
+    const left = timer.paused ? timer.left : Math.max(0, Math.round((timer.end - Date.now()) / 1000));
     const el = $('#timerPill');
-    timer = { end, label, int: setInterval(tick, 500) };
-    el.hidden = false;
-    tick();
-    function tick() {
-      const left = Math.max(0, Math.round((timer.end - Date.now()) / 1000));
-      el.innerHTML = `${I('timer')} <b>${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}</b> <button aria-label="Stop timer" id="timerStop">${I('x')}</button>`;
-      $('#timerStop').onclick = () => { clearInterval(timer.int); timer = null; el.hidden = true; };
-      if (!left) {
-        clearInterval(timer.int); timer = null; el.hidden = true;
-        beep(); if (navigator.vibrate) navigator.vibrate([400, 200, 400, 200, 400]);
-        showOverlay(`<div class="big-icon">⏰</div><h2>Time's up!</h2><p>Your ${mins} minute timer is done.</p><div class="stack"><button class="btn primary big" id="tOk">OK</button></div>`);
-        $('#tOk').onclick = hideOverlay;
-      }
+    el.hidden = document.body.dataset.screen === 'cook';
+    el.innerHTML = `${I('timer')} <b>${mmss(left)}</b> <button aria-label="Stop timer" id="timerStop">${I('x')}</button>`;
+    $('#timerStop').onclick = stopTimer;
+    const rt = $('#ringTime'), rf = $('#ringFg');
+    if (rt) rt.textContent = String(Math.floor(left / 60)).padStart(2, '0') + ':' + String(left % 60).padStart(2, '0');
+    if (rf) rf.style.strokeDashoffset = String((339.3 * (1 - left / timer.total)).toFixed(1));
+    return left;
+  }
+  function stopTimer() { if (timer) clearInterval(timer.int); timer = null; $('#timerPill').hidden = true; }
+  function tick() {
+    if (!timer || timer.paused) return;
+    const left = paintTimer();
+    if (!left) {
+      const mins = timer.mins;
+      stopTimer(); beep(); if (navigator.vibrate) navigator.vibrate([400, 200, 400, 200, 400]);
+      showOverlay(`<div class="big-icon">⏰</div><h2>Time's up!</h2><p>Your ${mins} minute timer is done.</p><div class="stack"><button class="btn primary big" id="tOk">OK</button></div>`);
+      $('#tOk').onclick = hideOverlay;
+      if (document.body.dataset.screen === 'cook') { const id = cookId; if (id) renderCook(id); }
     }
+  }
+  function startTimer(mins, label) {
+    if (timer) clearInterval(timer.int);
+    timer = { end: Date.now() + mins * 60000, total: mins * 60, left: mins * 60, mins, label, paused: false, int: null };
+    timer.int = setInterval(tick, 500);
+    paintTimer();
+  }
+  function toggleTimerPause() {
+    if (!timer) return;
+    if (timer.paused) { timer.end = Date.now() + timer.left * 1000; timer.paused = false; timer.int = setInterval(tick, 500); }
+    else { timer.left = Math.max(0, Math.round((timer.end - Date.now()) / 1000)); timer.paused = true; clearInterval(timer.int); }
+    paintTimer();
   }
   function beep() {
     try {
@@ -1049,27 +1118,32 @@
     toast(`Added ${ingCount(r)} ingredients to your grocery list ✓`);
     return added;
   }
+  let gFilter = 'all', gAddOpen = false;
   function renderGroceries() {
+    const shown = groceries.filter(x => gFilter === 'all' || (gFilter === 'recipes' ? (x.from && x.from.length) : !(x.from && x.from.length)));
     const groups = {};
-    groceries.forEach(x => { (groups[x.aisle] = groups[x.aisle] || []).push(x); });
+    shown.forEach(x => { (groups[x.aisle] = groups[x.aisle] || []).push(x); });
     const order = AISLES.map(a => a[0]).concat('Other');
     const left = groceries.filter(x => !x.done).length;
     app.innerHTML = `<section class="groceries">
-      <header class="page-head"><h1>Grocery List</h1><button class="round-btn" id="gAddFocus" aria-label="Add an item">${I('plus')}</button></header>
-      <form class="gadd" id="gAdd"><input id="gIn" placeholder="Add an item, like “2 lemons”" autocomplete="off"><button class="btn primary">Add</button></form>
+      <header class="page-head"><h1>Grocery List</h1><button class="add-pill" id="gAddFocus">${I('plus')} Add Items</button></header>
+      <div class="gtabs" role="tablist">${[['all', 'All'], ['recipes', 'Recipes'], ['custom', 'Custom']].map(([k, l]) => `<button class="${gFilter === k ? 'on' : ''}" data-gf="${k}" role="tab">${l}</button>`).join('')}</div>
+      ${gAddOpen || !groceries.length ? `<form class="gadd" id="gAdd"><input id="gIn" placeholder="Add an item, like “2 lemons”" autocomplete="off"><button class="btn primary">Add</button></form>` : ''}
       ${groceries.length ? `<p class="count-line">${left ? `${plural(left, 'item')} to buy` : 'All done! 🎉'}</p>
-        ${order.filter(a => groups[a]).map(a => `<div class="gsec"><h2>${esc(a)}</h2><ul>${groups[a].map(x => {
+        ${shown.length ? order.filter(a => groups[a]).map(a => `<div class="gsec"><h2>${esc(a)}</h2><ul>${groups[a].map(x => {
           const amt = x.qty != null ? P.formatIngredient({ qty: x.qty, qtyMax: null, unit: x.unit, unitKey: x.unitKey, size: '', name: x.name }, 1).amount : '';
           return `<li class="${x.done ? 'done' : ''}"><label><input type="checkbox" data-g="${x.id}" ${x.done ? 'checked' : ''}><span><b>${esc(x.name)}</b>${amt ? ` <small>${esc(amt)}</small>` : ''}${x.from && x.from.length ? `<em>${esc(x.from.join(', '))}</em>` : ''}</span></label>
-          <button class="x" data-gdel="${x.id}" aria-label="Remove">${I('x')}</button></li>`; }).join('')}</ul></div>`).join('')}
+          <button class="x" data-gdel="${x.id}" aria-label="Remove">${I('x')}</button></li>`; }).join('')}</ul></div>`).join('') : `<p class="muted center">Nothing here yet.</p>`}
         <div class="stack">
           <button class="btn primary big" id="gAll">${I('check')} Mark all as purchased</button>
           <button class="btn big ghost" id="gClear">Clear purchased items</button>
         </div>`
       : `<div class="empty-card"><div class="big-icon">🛒</div><h2>Your list is empty</h2><p>Open a recipe and tap <b>Add to grocery list</b>, or type an item above.</p></div>`}
     </section>`;
-    $('#gAddFocus').onclick = () => $('#gIn').focus();
-    $('#gAdd').onsubmit = e => {
+    $('#gAddFocus').onclick = () => { gAddOpen = !gAddOpen; renderGroceries(); const i = $('#gIn'); if (i) i.focus(); };
+    app.querySelectorAll('[data-gf]').forEach(b => b.onclick = () => { gFilter = b.dataset.gf; renderGroceries(); });
+    const form = $('#gAdd');
+    if (form) form.onsubmit = e => {
       e.preventDefault();
       const v = $('#gIn').value.trim(); if (!v) return;
       const i = P.parseIngredient(v);
@@ -1085,21 +1159,24 @@
   // ---------- Profile, settings, help ----------
   function renderProfile() {
     const name = settings.userName;
+    const initials = name ? name.trim().split(/\s+/).slice(0, 2).map(w => w[0].toUpperCase()).join('') : '';
+    const left = groceries.filter(g => !g.done).length;
+    const row = (icon, label, count, attrs) => `<li><button ${attrs}>${I(icon)}<span>${label}</span>${count == null ? '' : `<em>${count}</em>`}${I('right')}</button></li>`;
     app.innerHTML = `<section class="profile">
-      <div class="who"><div class="avatar">${name ? esc(name.trim()[0].toUpperCase()) : I('user')}</div>
-        <div><button class="name-btn" id="nameBtn">${name ? esc(name) : 'Add your name'} ${I('edit')}</button>
-        <p class="who-sub">${plural(recipes.length, 'recipe')} saved · ${plural(recipes.filter(r => r.favorite).length, 'favorite')}</p></div></div>
-      <ul class="menu">
-        <li><button data-go="#recipes">${I('book')}<span>My Recipes</span>${I('right')}</button></li>
-        <li><button id="favLink">${I('bookmark')}<span>Favorites</span>${I('right')}</button></li>
-        <li><button data-go="#groceries">${I('list')}<span>Grocery List</span>${I('right')}</button></li>
-        <li><button data-go="#collections">${I('cookbook')}<span>Collections</span>${I('right')}</button></li>
-        <li><button data-go="#history">${I('scan')}<span>Scan History</span>${I('right')}</button></li>
-        <li><button data-go="#settings">${I('sliders')}<span>Settings</span>${I('right')}</button></li>
-        <li><button id="backupLink">${I('save')}<span>Back up my recipes</span>${I('right')}</button></li>
-        <li><button data-go="#help">${I('help')}<span>Help &amp; Support</span>${I('right')}</button></li>
+      <div class="pf-avatar">${initials ? esc(initials) : I('user')}</div>
+      <button class="pf-name" id="nameBtn">${name ? esc(name) : 'Add your name'} ${I('edit')}</button>
+      <p class="pf-sub">Your recipes are private and stay on this device</p>
+      <ul class="pf-menu">
+        ${row('book', 'My Recipes', recipes.length, 'data-go="#recipes"')}
+        ${row('heart', 'Favorites', recipes.filter(r => r.favorite).length, 'id="favLink"')}
+        ${row('list', 'Grocery List', left, 'data-go="#groceries"')}
+        ${row('cookbook', 'Collections', collections().length, 'data-go="#collections"')}
+        ${row('scan', 'Scan History', recipes.length, 'data-go="#history"')}
+        ${row('sliders', 'Settings', null, 'data-go="#settings"')}
+        ${row('help', 'Help &amp; Support', null, 'data-go="#help"')}
       </ul>
-      <p class="small muted center">Your recipes are private and stay on this device.</p>
+      <button class="pf-out" id="backupLink">${I('save')} Back up my recipes</button>
+      ${I('leaf', 'pf-leaf')}
     </section>`;
     $('#nameBtn').onclick = () => {
       showOverlay(`<h2>What's your name?</h2><input id="nmIn" value="${esc(name)}" placeholder="Your first name">
